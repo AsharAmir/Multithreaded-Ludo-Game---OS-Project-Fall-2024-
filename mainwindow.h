@@ -10,10 +10,17 @@
 #include <QVector>
 #include <QThread>
 #include <QTimer>
+#include <QMap>
 #include "player.h"
 #include "dice.h"
 #include "playerthread.h"
 #include "masterthread.h"
+
+const int CELL_SIZE = 40;
+const int START_POSITION_X = 20;
+const int START_POSITION_Y = 20;
+const int boardWidth = 800;  // adjust to your board size
+const int boardHeight = 600; // adjust to your board size
 
 // class PlayerThread;
 // class MasterThread;
@@ -65,6 +72,7 @@ private:
     QLabel *statusLabel;
     QLabel *playerStatsLabel;
     Dice *dice;
+    QLabel* diceLabel;
     QVector<Player *> players;
     QVector<PlayerThread *> playerThreads;
     MasterThread *masterThread;
@@ -77,6 +85,9 @@ private:
     int turnCount;
     QVector<int> noSixCount;
 
+    void initializeTokensForPlayer(int playerIndex);
+    bool playerTokensInitialized = false;
+
     static const int BOARD_SIZE = 600;
     static const int GRID_SIZE = 15;
     static const int CELL_SIZE = BOARD_SIZE / GRID_SIZE;
@@ -84,6 +95,30 @@ private:
     static const int TURN_TIMEOUT = 30000; // 30 seconds
 
     Token *createToken(Player *player, int tokenId);
+
+    // Add these member variables
+    int currentPlayerIndex;
+    // QMap<int, QLabel*> playerTokens;
+    QStringList playerColors;
+
+    // Add these method declarations
+    void nextPlayer();
+    void createPlayerToken(int playerIndex);
+    bool checkForHit(const QPoint& position);
+    QPoint calculateNewPosition(Player* player, int diceValue);
+    bool isValidMove(const QPoint& position);
+
+    int currentTokenId = 0; // Add this to track current token
+
+    QVector<QLabel*> playerTokens[4]; // Array of 4 tokens per player
+    const int TOKENS_PER_PLAYER = 4;
+    void initializeTokenPositions();
+    void moveSelectedToken(int playerIndex, int tokenIndex, int diceValue);
+    bool canMoveToken(int playerIndex, int tokenIndex, int diceValue);
+
+    bool isTokenInYard(const QPoint& pos, int playerIndex);
+    void checkForCaptures(const QPoint& pos, int playerIndex);
+    QPoint calculateNewPositionFromPoint(const QPoint& currentPos, int steps);
 };
 
 // class PlayerThread : public QThread

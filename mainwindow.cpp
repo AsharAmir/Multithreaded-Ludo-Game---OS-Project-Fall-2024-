@@ -99,8 +99,16 @@ void MainWindow::createPlayers()
 
 void MainWindow::startGame()
 {
+    if (!playerTokensInitialized) {
+        // Initialize tokens for all players
+        for (int i = 0; i < 4; i++) {
+            initializeTokensForPlayer(i);
+        }
+        playerTokensInitialized = true;
+    }
+    
     gameStarted = true;
-    currentPlayer = 0;
+    currentPlayerIndex = 0;
     statusLabel->setText("Game started! Player 1's turn.");
     rollButton->setEnabled(true);
     startButton->setEnabled(false);
@@ -133,8 +141,9 @@ MainWindow::~MainWindow()
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), currentPlayer(0), gameStarted(false),
-      consecutiveSixesCount(0), turnCount(0)
+    : QMainWindow(parent)
+    , currentPlayerIndex(0)
+    , playerTokensInitialized(false)
 {
     setFixedSize(1024, 768);
     setStyleSheet("background-color: #2C3E50;");
@@ -153,6 +162,11 @@ MainWindow::MainWindow(QWidget *parent)
     noSixCount.fill(0);
 
     initializeThreads();
+
+    // Initialize player tokens
+    for (int i = 0; i < players.size(); ++i) {
+        createPlayerToken(i);
+    }
 }
 
 void MainWindow::styleUIComponents()
@@ -230,6 +244,10 @@ void MainWindow::setupUI()
     controlLayout->addWidget(rollButton);
     rollButton->setEnabled(false);
 
+    // Add dice label to control panel
+    diceLabel = new QLabel("Dice: 0", this);
+    controlLayout->addWidget(diceLabel);
+
     layout->addLayout(controlLayout);
 
     // Status and stats panel
@@ -278,7 +296,7 @@ void MainWindow::initializeThreads()
         playerThreads.append(thread);
 
         connect(thread, &PlayerThread::turnCompleted, this, &MainWindow::nextTurn);
-        connect(thread, &PlayerThread::tokenCaptured, this, &MainWindow::handleTokenCapture);
+        connect(thread, &PlayerThread::tokenCaptured, this, &MainWindow::handleTokenCapture, Qt::UniqueConnection);
 
         thread->start();
     }
@@ -369,53 +387,79 @@ void MainWindow::updatePlayerStats()
     playerStatsLabel->setText(stats);
 }
 
+bool isRolling = false;
 
 void MainWindow::rollDice()
 {
-    if (!gameStarted)
-    {
-        statusLabel->setText("Game not started!");
+    qDebug() << "Rolling dice for player" << currentPlayerIndex;
+    
+    if (!playerTokensInitialized || currentPlayerIndex < 0 || currentPlayerIndex >= 4) {
+        qDebug() << "Invalid state detected";
         return;
     }
-
-    // Roll the dice and get a value
-    int value = dice->roll();
-    statusLabel->setText(QString("Player %1 rolled: %2").arg(currentPlayer + 1).arg(value));
-
-    Player *currentPlayerObj = players[currentPlayer];
-
-    QVector<int> validTokens; // Store tokens that can make valid moves
-
-    // Check for valid moves
-    for (int i = 0; i < 4; i++)
-    {
-        if (isValidMove(currentPlayerObj, i, value))
-        {
+    
+    if (isRolling) {
+        qDebug() << "Already rolling";
+        return;
+    }
+    isRolling = true;
+    
+    int diceValue = QRandomGenerator::global()->bounded(1, 7);
+    diceLabel->setText(QString("Dice: %1").arg(diceValue));
+    qDebug() << "Rolled:" << diceValue;
+    
+    QVector<int> validTokens;
+    for (int i = 0; i < TOKENS_PER_PLAYER; i++) {
+        if (canMoveToken(currentPlayerIndex, i, diceValue)) {
             validTokens.append(i);
         }
     }
-
-    // If there are valid moves, prompt the user to select a token
-    if (!validTokens.isEmpty())
-    {
-        if (validTokens.size() == 1)
-        {
-            // Automatically move the only valid token
-            moveToken(currentPlayerObj, validTokens.first(), value);
+    
+    qDebug() << "Valid tokens:" << validTokens;
+    
+    if (!validTokens.isEmpty()) {
+        QDialog dialog(this);
+        dialog.setWindowTitle("Select Token to Move");
+        QVBoxLayout* layout = new QVBoxLayout(&dialog);
+        
+        for (int tokenIndex : validTokens) {
+            QPushButton* btn = new QPushButton(QString("Move Token %1").arg(tokenIndex + 1), &dialog);
+            connect(btn, &QPushButton::clicked, [this, tokenIndex, diceValue, &dialog]() {
+                moveSelectedToken(currentPlayerIndex, tokenIndex, diceValue);
+                dialog.accept();
+            });
+            layout->addWidget(btn);
         }
-        else
-        {
-            // Show a dialog to let the user pick a token
-            selectTokenDialog(validTokens, value);
-        }
+        
+        dialog.exec();
     }
-    else
-    {
-        // If no valid moves, notify and go to the next turn
-        statusLabel->setText("No valid moves. Skipping turn...");
-        nextTurn();
-    }
+    
+    currentPlayerIndex = (currentPlayerIndex + 1) % 4;
+    updatePlayerStats();
+    statusLabel->setText(QString("Player %1's turn").arg(currentPlayerIndex + 1));
+    
+    isRolling = false;
 }
+
+
+// void MainWindow::moveSelectedToken(int playerIndex, int tokenIndex, int diceValue)
+// {
+//     QLabel* token = playerTokens[playerIndex][tokenIndex];
+//     QPoint currentPos = token->pos() / CELL_SIZE;
+    
+//     if (isTokenInYard(currentPos, playerIndex) && diceValue == 6) {
+//         // Move to start position
+//         QPoint startPos = PLAYER_START_POSITIONS[playerIndex];
+//         token->move(startPos.x() * CELL_SIZE, startPos.y() * CELL_SIZE);
+//     } else {
+//         // Move on board
+//         QPoint newPos = calculateNewPosition(currentPos, diceValue);
+//         token->move(newPos.x() * CELL_SIZE, newPos.y() * CELL_SIZE);
+        
+//         // Check for captures
+//         checkForCaptures(newPos, playerIndex);
+//     }
+// }
 
 void MainWindow::selectTokenDialog(const QVector<int> &validTokens, int diceValue)
 {
@@ -604,6 +648,180 @@ void MainWindow::handleCaptures(Player *currentPlayer, int position)
                 QPoint yardPos = PLAYER_YARD_POSITIONS[otherPlayer->getId()][tokenId];
                 otherPlayer->updateTokenGraphics(tokenId, yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE);
             }
+        }
+    }
+}
+
+void MainWindow::createPlayerToken(int playerIndex)
+{
+    if (playerColors.isEmpty()) {
+        playerColors << "#FF0000" << "#00FF00" << "#0000FF" << "#FFFF00";
+    }
+    
+    QLabel* token = new QLabel(this);
+    token->setFixedSize(30, 30);
+    token->setStyleSheet(QString("background-color: %1; border-radius: 15px;")
+                        .arg(playerColors[playerIndex % playerColors.size()]));
+    token->show();
+    token->raise();
+    
+    // Fix: Add token to vector instead of assignment
+    playerTokens[playerIndex].append(token);
+    
+    // Set initial position at yard
+    QPoint yardPos = PLAYER_YARD_POSITIONS[playerIndex][0];
+    token->move(yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE);
+}
+
+void MainWindow::nextPlayer()
+{
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+}
+
+QPoint MainWindow::calculateNewPosition(Player* player, int diceValue)
+{
+    int currentPos = player->getTokenPosition(currentTokenId);
+    
+    // Assuming board positions are numbered sequentially
+    int newPos = currentPos + diceValue;
+    
+    // Convert position number to x,y coordinates
+    int x = (newPos % (boardWidth/CELL_SIZE)) * CELL_SIZE;
+    int y = (newPos / (boardWidth/CELL_SIZE)) * CELL_SIZE;
+    
+    return QPoint(x + START_POSITION_X, y + START_POSITION_Y);
+}
+
+bool MainWindow::isValidMove(const QPoint& position)
+{
+    // Add your move validation logic here
+    return position.x() >= 0 && position.x() < boardWidth &&
+           position.y() >= 0 && position.y() < boardHeight;
+}
+
+bool MainWindow::checkForHit(const QPoint& position)
+{
+    // Add your hit detection logic here
+    return false;
+}
+
+void MainWindow::initializeTokenPositions()
+{
+    for (int playerIndex = 0; playerIndex < 4; playerIndex++) {
+        for (int tokenIndex = 0; tokenIndex < TOKENS_PER_PLAYER; tokenIndex++) {
+            QLabel* token = new QLabel(this);
+            token->setFixedSize(30, 30);
+            token->setStyleSheet(QString("background-color: %1; border-radius: 15px;")
+                               .arg(playerColors[playerIndex]));
+            
+            // Set initial position in home yard
+            QPoint yardPos = PLAYER_YARD_POSITIONS[playerIndex][tokenIndex];
+            token->move(yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE);
+            token->show();
+            token->raise();
+            
+            playerTokens[playerIndex].append(token);
+        }
+    }
+}
+
+void MainWindow::moveSelectedToken(int playerIndex, int tokenIndex, int diceValue)
+{
+    QLabel* token = playerTokens[playerIndex][tokenIndex];
+    QPoint currentPos = token->pos() / CELL_SIZE;
+    
+    if (isTokenInYard(currentPos, playerIndex) && diceValue == 6) {
+        // Move to start position
+        QPoint startPos = PLAYER_START_POSITIONS[playerIndex];
+        token->move(startPos.x() * CELL_SIZE, startPos.y() * CELL_SIZE);
+    } else {
+        // Move on board
+        QPoint newPos = calculateNewPositionFromPoint(currentPos, diceValue);
+        token->move(newPos.x() * CELL_SIZE, newPos.y() * CELL_SIZE);
+        
+        // Check for captures
+        checkForCaptures(newPos, playerIndex);
+    }
+}
+
+bool MainWindow::canMoveToken(int playerIndex, int tokenIndex, int diceValue)
+{
+    QLabel* token = playerTokens[playerIndex][tokenIndex];
+    QPoint pos = token->pos() / CELL_SIZE; // Convert to grid coordinates
+    
+    // Check if token is in yard and dice shows 6
+    if (isTokenInYard(pos, playerIndex) && diceValue == 6) {
+        return true;
+    }
+    
+    // Check if token is on board and can move
+    if (!isTokenInYard(pos, playerIndex)) {
+        QPoint newPos = calculateNewPositionFromPoint(pos, diceValue);
+        return isValidMove(newPos);
+    }
+    
+    return false;
+}
+
+bool MainWindow::isTokenInYard(const QPoint& pos, int playerIndex)
+{
+    // Check if position matches any yard position for this player
+    for (int i = 0; i < 4; i++) {
+        if (pos == PLAYER_YARD_POSITIONS[playerIndex][i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void MainWindow::checkForCaptures(const QPoint& newPos, int currentPlayerIndex)
+{
+    // Check all other players' tokens
+    for (int playerIndex = 0; playerIndex < 4; playerIndex++) {
+        if (playerIndex == currentPlayerIndex) continue;
+        
+        for (int tokenIndex = 0; tokenIndex < TOKENS_PER_PLAYER; tokenIndex++) {
+            QLabel* otherToken = playerTokens[playerIndex][tokenIndex];
+            QPoint otherPos = otherToken->pos() / CELL_SIZE;
+            
+            if (otherPos == newPos) {
+                // Send token back to yard
+                QPoint yardPos = PLAYER_YARD_POSITIONS[playerIndex][tokenIndex];
+                otherToken->move(yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE);
+            }
+        }
+    }
+}
+
+QPoint MainWindow::calculateNewPositionFromPoint(const QPoint& currentPos, int steps)
+{
+    // Simple board movement logic - customize based on your board layout
+    int x = currentPos.x();
+    int y = currentPos.y();
+    
+    // Example movement pattern
+    x = (x + steps) % (BOARD_SIZE / CELL_SIZE);
+    
+    return QPoint(x, y);
+}
+
+void MainWindow::initializeTokensForPlayer(int playerIndex)
+{
+    // Initialize vector for this player if needed
+    if (playerTokens[playerIndex].isEmpty()) {
+        for (int i = 0; i < TOKENS_PER_PLAYER; i++) {
+            QLabel* token = new QLabel(this);
+            token->setFixedSize(30, 30);
+            token->setStyleSheet(QString("background-color: %1; border-radius: 15px;")
+                               .arg(playerColors[playerIndex]));
+            
+            // Place in yard position
+            QPoint yardPos = PLAYER_YARD_POSITIONS[playerIndex][i];
+            token->move(yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE);
+            token->show();
+            token->raise();
+            
+            playerTokens[playerIndex].append(token);
         }
     }
 }
