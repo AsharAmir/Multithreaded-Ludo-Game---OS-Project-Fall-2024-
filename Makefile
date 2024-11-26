@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = LudoGame1.0.0
-DISTDIR = /mnt/c/Users/ashaa/Documents/Uni/5th\ Sem/OS\ LAB/PROJ/ludo\ -\ 2/.tmp/LudoGame1.0.0
+DISTDIR = /home/ashar/Multithreaded-Ludo-Game/.tmp/LudoGame1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lGL -lpthread   
@@ -56,15 +56,23 @@ SOURCES       = main.cpp \
 		mainwindow.cpp \
 		player.cpp \
 		token.cpp \
-		dice.cpp moc_mainwindow.cpp \
-		moc_dice.cpp
+		dice.cpp \
+		playerthread.cpp \
+		masterthread.cpp moc_mainwindow.cpp \
+		moc_dice.cpp \
+		moc_playerthread.cpp \
+		moc_masterthread.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		player.o \
 		token.o \
 		dice.o \
+		playerthread.o \
+		masterthread.o \
 		moc_mainwindow.o \
-		moc_dice.o
+		moc_dice.o \
+		moc_playerthread.o \
+		moc_masterthread.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -145,11 +153,15 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		ludo.pro mainwindow.h \
 		player.h \
 		token.h \
-		dice.h main.cpp \
+		dice.h \
+		playerthread.h \
+		masterthread.h main.cpp \
 		mainwindow.cpp \
 		player.cpp \
 		token.cpp \
-		dice.cpp
+		dice.cpp \
+		playerthread.cpp \
+		masterthread.cpp
 QMAKE_TARGET  = LudoGame
 DESTDIR       = 
 TARGET        = LudoGame
@@ -333,8 +345,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h player.h token.h dice.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp player.cpp token.cpp dice.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h player.h token.h dice.h playerthread.h masterthread.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp player.cpp token.cpp dice.cpp playerthread.cpp masterthread.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -366,21 +378,37 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_dice.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_dice.cpp moc_playerthread.cpp moc_masterthread.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_dice.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_dice.cpp moc_playerthread.cpp moc_masterthread.cpp
 moc_mainwindow.cpp: mainwindow.h \
 		player.h \
 		token.h \
 		dice.h \
+		playerthread.h \
+		masterthread.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include '/mnt/c/Users/ashaa/Documents/Uni/5th Sem/OS LAB/PROJ/ludo - 2/moc_predefs.h' -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I'/mnt/c/Users/ashaa/Documents/Uni/5th Sem/OS LAB/PROJ/ludo - 2' -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/ashar/Multithreaded-Ludo-Game/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/ashar/Multithreaded-Ludo-Game -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_dice.cpp: dice.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include '/mnt/c/Users/ashaa/Documents/Uni/5th Sem/OS LAB/PROJ/ludo - 2/moc_predefs.h' -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I'/mnt/c/Users/ashaa/Documents/Uni/5th Sem/OS LAB/PROJ/ludo - 2' -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include dice.h -o moc_dice.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/ashar/Multithreaded-Ludo-Game/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/ashar/Multithreaded-Ludo-Game -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include dice.h -o moc_dice.cpp
+
+moc_playerthread.cpp: playerthread.h \
+		player.h \
+		token.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/ashar/Multithreaded-Ludo-Game/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/ashar/Multithreaded-Ludo-Game -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include playerthread.h -o moc_playerthread.cpp
+
+moc_masterthread.cpp: masterthread.h \
+		player.h \
+		token.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/ashar/Multithreaded-Ludo-Game/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/ashar/Multithreaded-Ludo-Game -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/13 -I/usr/include/x86_64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/gcc/x86_64-linux-gnu/13/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include masterthread.h -o moc_masterthread.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -401,13 +429,17 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 main.o: main.cpp mainwindow.h \
 		player.h \
 		token.h \
-		dice.h
+		dice.h \
+		playerthread.h \
+		masterthread.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
 		player.h \
 		token.h \
-		dice.h
+		dice.h \
+		playerthread.h \
+		masterthread.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 player.o: player.cpp player.h \
@@ -420,11 +452,27 @@ token.o: token.cpp token.h
 dice.o: dice.cpp dice.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o dice.o dice.cpp
 
+playerthread.o: playerthread.cpp playerthread.h \
+		player.h \
+		token.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o playerthread.o playerthread.cpp
+
+masterthread.o: masterthread.cpp masterthread.h \
+		player.h \
+		token.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o masterthread.o masterthread.cpp
+
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
 
 moc_dice.o: moc_dice.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_dice.o moc_dice.cpp
+
+moc_playerthread.o: moc_playerthread.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_playerthread.o moc_playerthread.cpp
+
+moc_masterthread.o: moc_masterthread.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_masterthread.o moc_masterthread.cpp
 
 ####### Install
 

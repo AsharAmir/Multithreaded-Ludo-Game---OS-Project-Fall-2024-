@@ -1,10 +1,13 @@
 #include "player.h"
 
-Player::Player(QColor color, int id) : color(color), id(id), hitCount(0)
+Player::Player(QColor color, int id)
+    : color(color), id(id), hitCount(0), isDisqualified_(false), noSixCount(0)
 {
     for (int i = 0; i < 4; i++)
     {
-        tokens.push_back(new Token(color, i)); // Create tokens with the player's color
+        Token *token = new Token(color, i);
+        token->setTokenNumber(i + 1); // Set token numbers 1-4
+        tokens.push_back(token);
     }
 }
 
@@ -49,7 +52,7 @@ Token *Player::getToken(int tokenId) const
 
 int Player::getTokenPosition(int tokenId) const
 {
-    if (tokenId >= 0 && tokenId < tokens.size())
+    if (tokenId >= 0 && tokenId < static_cast<int>(tokens.size()))
     {
         return tokens[tokenId]->position; // Access token's position
     }
@@ -58,7 +61,7 @@ int Player::getTokenPosition(int tokenId) const
 
 void Player::setTokenPosition(int tokenId, int newPosition)
 {
-    if (tokenId >= 0 && tokenId < tokens.size())
+    if (tokenId >= 0 && tokenId < static_cast<int>(tokens.size()))
     {
         tokens[tokenId]->position = newPosition; // Set token's position
     }
@@ -97,4 +100,96 @@ void Player::updateTokenGraphics(int tokenId, int x, int y)
     {
         graphics[tokenId]->setRect(x, y, 30, 30);
     }
+}
+
+bool Player::hasActiveTokens() const
+{
+    for (Token *token : tokens)
+    {
+        if (!token->isInYard && !token->isHome)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+int Player::getActiveTokenCount() const
+{
+    int count = 0;
+    for (Token *token : tokens)
+    {
+        if (!token->isInYard && !token->isHome)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
+bool Player::hasBlockAt(int position) const
+{
+    int tokensAtPosition = 0;
+    for (Token *token : tokens)
+    {
+        if (token->position == position)
+        {
+            tokensAtPosition++;
+            if (tokensAtPosition >= 2)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int Player::getHitCount() const
+{
+    return hitCount;
+}
+
+const std::vector<Token *> &Player::getTokens() const
+{
+    return tokens;
+}
+
+void Player::disqualify()
+{
+    isDisqualified_ = true;
+    for (Token *token : tokens)
+    {
+        token->isInYard = true; // Send all tokens back to yard
+        token->position = -1;   // Reset position
+    }
+}
+
+bool Player::isDisqualified() const
+{
+    return isDisqualified_;
+}
+
+int Player::getId() const
+{
+    return id;
+}
+
+QColor Player::getColor() const
+{
+    return color;
+}
+
+void Player::resetNoSixCount()
+{
+    noSixCount = 0;
+}
+
+void Player::incrementNoSixCount()
+{
+    noSixCount++;
+}
+
+int Player::getNoSixCount() const
+{
+    return noSixCount;
 }

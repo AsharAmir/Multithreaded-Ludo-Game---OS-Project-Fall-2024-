@@ -10,36 +10,44 @@
 class Player
 {
 public:
-    Player(QColor color, int id); // Constructor
-    ~Player();                    // Destructor
+    Player(QColor color, int id);
+    ~Player();
 
-    // Token Management
-    void initializeTokens(QGraphicsScene *scene, int startX, int startY); // Initialize all tokens on the board
+    void initializeTokens(QGraphicsScene *scene, int startX, int startY);
     void updateTokenGraphics(int tokenId, int x, int y);
-    void updateTokenGraphics(int tokenId, int newPosition);          // Update graphical position of a token
-    Token *getToken(int tokenId) const;                              // Get a specific token by ID
-    const std::vector<Token *> &getTokens() const { return tokens; } // Get all tokens
+    void updateTokenGraphics(int tokenId, int newPosition);
+    Token *getToken(int tokenId = 0) const; // Default parameter for backwards compatibility
+    const std::vector<Token *> &getTokens() const;
+    std::vector<Token *> &getTokens() { return tokens; }
 
-    // State Queries
-    bool hasWon() const;                      // Check if the player has won
-    bool canEnterHome() const;                // Check if the player can enter the home area
-    int getId() const { return id; }          // Get the player's ID
-    QColor getColor() const { return color; } // Get the player's color
+    bool hasWon() const;
+    bool canEnterHome() const;
+    int getId() const;
+    QColor getColor() const;
 
-    // Game Progress
-    void incrementHitCount();                    // Increment the hit count
-    int getHitCount() const { return hitCount; } // Get the hit count
+    void incrementHitCount();
+    int getHitCount() const;
+    void disqualify();
+    bool isDisqualified() const;
 
-    // Token Position Management
-    int getTokenPosition(int tokenId) const;          // Get the current position of a token
-    void setTokenPosition(int tokenId, int position); // Set the current position of a token
+    int getTokenPosition(int tokenId) const;
+    void setTokenPosition(int tokenId, int position);
+
+    bool hasActiveTokens() const;
+    int getActiveTokenCount() const;
+    bool hasBlockAt(int position) const;
+    void resetNoSixCount();
+    void incrementNoSixCount();
+    int getNoSixCount() const;
 
 private:
-    QColor color;                                 // Player's color
-    int id;                                       // Player's ID
-    int hitCount;                                 // Number of hits made by the player
-    std::vector<Token *> tokens;                  // List of tokens owned by the player
-    std::vector<QGraphicsEllipseItem *> graphics; // Graphical representation of tokens
+    QColor color;
+    int id;
+    int hitCount;
+    std::vector<Token *> tokens;
+    std::vector<QGraphicsEllipseItem *> graphics;
+    bool isDisqualified_;
+    int noSixCount;
 };
 
 #endif // PLAYER_H
