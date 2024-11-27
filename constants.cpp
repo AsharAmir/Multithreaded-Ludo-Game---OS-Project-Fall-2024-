@@ -6,4 +6,3 @@ const QPoint START_SQUARES[4] = {
     QPoint(8, 1),  // Red (top)
     QPoint(13, 8)  // Green (right)
 };
-

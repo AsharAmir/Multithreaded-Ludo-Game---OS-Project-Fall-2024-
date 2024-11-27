@@ -296,7 +296,6 @@ void LudoGame::drawLudoBoard(QPainter &painter)
 
 void LudoGame::drawPieces(QPainter &painter)
 {
-    // Define correct colors for each player
     QColor colors[4] = {
         QColor(0, 0, 255),   // Blue
         QColor(255, 255, 0), // Yellow
@@ -304,40 +303,41 @@ void LudoGame::drawPieces(QPainter &painter)
         QColor(0, 255, 0)    // Green
     };
 
-    int startPositions[4][2] = {{2, 2}, {2, 11}, {11, 2}, {11, 11}};
-    const int GRID_OFFSET = TILE_SIZE / 2;
+    std::vector<PathCoordinate> *paths[4] = {&bluePath, &yellowPath, &redPath, &greenPath};
 
-    for (int player = 0; player < MAX_PLAYERS; ++player)
+    // Draw tokens for each player
+    for (int p = 0; p < MAX_PLAYERS; p++)
     {
-        int tokenCount = players[player].tokens.size();
-        for (int i = 0; i < tokenCount; ++i)
+        for (const auto &token : players[p].tokens)
         {
-            Token &token = players[player].tokens[i];
+            std::lock_guard<std::mutex> lock(token.tokenMutex);
+            
+            QRectF tokenRect;
             if (!token.inPlay)
             {
-                int row = i / 2;
-                int col = i % 2;
-
-                int x = startPositions[player][0] * TILE_SIZE + GRID_OFFSET + (col * TILE_SIZE);
-                int y = startPositions[player][1] * TILE_SIZE + GRID_OFFSET + (row * TILE_SIZE);
-
-                x -= PIECE_RADIUS;
-                y -= PIECE_RADIUS;
-
-                QRectF pieceRect(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
-                painter.setBrush(colors[player]);
-                painter.setPen(QPen(Qt::black, 2));
-                painter.drawEllipse(pieceRect);
+                // Calculate home position
+                int tokenIndex = &token - &players[p].tokens[0];
+                int row = tokenIndex / 2;
+                int col = tokenIndex % 2;
+                
+                int startPositions[4][2] = {{2, 2}, {2, 11}, {11, 2}, {11, 11}};
+                float x = (startPositions[p][0] + col) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                float y = (startPositions[p][1] + row) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                
+                tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
             }
             else
             {
-                QPointF pos = calculateBoardPosition(token.position);
-                QRectF pieceRect(pos.x() - PIECE_RADIUS, pos.y() - PIECE_RADIUS,
-                                 PIECE_RADIUS * 2, PIECE_RADIUS * 2);
-                painter.setBrush(colors[player]);
-                painter.setPen(QPen(Qt::black, 2));
-                painter.drawEllipse(pieceRect);
+                // Use token's current position on its path
+                const auto &pathPos = (*paths[p])[token.position];
+                float x = pathPos.x * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                float y = pathPos.y * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
             }
+            
+            painter.setBrush(colors[p]);
+            painter.setPen(QPen(Qt::black, 2));
+            painter.drawEllipse(tokenRect);
         }
     }
 }
@@ -470,6 +470,9 @@ void LudoGame::advanceTurn()
 
 void LudoGame::handleTokenSelection(const QPointF &mousePos)
 {
+    // Lock the board while handling selection
+    std::lock_guard<std::mutex> lock(boardMutex);
+    
     for (auto &token : players[currentPlayer].tokens)
     {
         QRectF tokenRect = calculateTokenRect(token);
@@ -513,77 +516,87 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
 
 void LudoGame::moveToken(Token &token, int spaces)
 {
+    std::lock_guard<std::mutex> lock(token.tokenMutex);
+
     if (!token.inPlay && spaces == 6)
     {
+        // Place token at starting position
         token.inPlay = true;
         QPoint startPos = getStartingPosition(currentPlayer);
         token.row = startPos.y();
         token.col = startPos.x();
-
+        
+        // Set the correct initial position based on player color
         switch (currentPlayer)
         {
-        case 0:
+        case 0: // Blue
             token.position = 0;
             break;
-        case 1:
+        case 1: // Yellow
             token.position = 13;
             break;
-        case 2:
+        case 2: // Red
             token.position = 26;
             break;
-        case 3:
+        case 3: // Green
             token.position = 39;
             break;
         }
-
+        
         update();
         return;
     }
 
     if (token.inPlay)
     {
-        std::vector<PathCoordinate> *currentPath;
+        std::vector<PathCoordinate> *currentPath = nullptr;
+        int pathOffset = 0;
+        
+        // Select the correct path and offset based on player color
         switch (currentPlayer)
         {
-        case 0:
+        case 0: // Blue
             currentPath = &bluePath;
+            pathOffset = 0;
             break;
-        case 1:
+        case 1: // Yellow
             currentPath = &yellowPath;
+            pathOffset = 13;
             break;
-        case 2:
+        case 2: // Red
             currentPath = &redPath;
+            pathOffset = 26;
             break;
-        case 3:
+        case 3: // Green
             currentPath = &greenPath;
+            pathOffset = 39;
             break;
-        default:
+        }
+
+        if (!currentPath) return;
+
+        // Calculate new position
+        int currentPathIndex = token.position - pathOffset;
+        int newPathIndex = currentPathIndex + spaces;
+        
+        // Check if move is valid
+        if (newPathIndex >= currentPath->size())
+        {
+            // Token can't move beyond the end of the path
             return;
         }
 
-        int currentPathIndex = -1;
-        for (int i = 0; i < currentPath->size(); i++)
-        {
-            if ((*currentPath)[i].x == token.col && (*currentPath)[i].y == token.row)
-            {
-                currentPathIndex = i;
-                break;
-            }
-        }
+        // Update token's position
+        token.position = newPathIndex + pathOffset;
+        token.row = (*currentPath)[newPathIndex].y;
+        token.col = (*currentPath)[newPathIndex].x;
 
-        if (currentPathIndex != -1)
-        {
-            int newPathIndex = (currentPathIndex + spaces) % currentPath->size();
-            token.col = (*currentPath)[newPathIndex].x;
-            token.row = (*currentPath)[newPathIndex].y;
-            token.position = newPathIndex;
-
-            checkAndProcessHits(token, newPathIndex, currentPlayer);
-
-            update();
-        }
+        // Check for hits with other players' tokens
+        checkAndProcessHits(token, token.position, currentPlayer);
     }
+    update();
 }
+
 
 void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
 {
@@ -619,46 +632,65 @@ void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
 
 QPoint LudoGame::getStartingPosition(int playerId)
 {
-    return START_SQUARES[playerId];
+    switch (playerId)
+    {
+    case 0: // Blue
+        return QPoint(1, 6);
+    case 1: // Yellow
+        return QPoint(6, 13);
+    case 2: // Red
+        return QPoint(8, 1);
+    case 3: // Green
+        return QPoint(13, 8);
+    default:
+        return QPoint(0, 0);
+    }
 }
 
 QPointF LudoGame::calculateBoardPosition(int position)
 {
-    float x = TILE_SIZE * 7;
-    float y = TILE_SIZE * 7;
-
-    const int squaresPerSide = 13;
-    const float centerX = GRID_SIZE * TILE_SIZE / 2;
-    const float centerY = GRID_SIZE * TILE_SIZE / 2;
-
-    if (position < squaresPerSide)
+    // Convert board position to grid coordinates
+    std::vector<PathCoordinate> *currentPath;
+    switch (currentPlayer)
     {
-        x = centerX - ((squaresPerSide / 2) - position) * TILE_SIZE;
-        y = centerY + (GRID_SIZE / 2 - 1) * TILE_SIZE;
-    }
-    else if (position < squaresPerSide * 2)
-    {
-        x = centerX - (GRID_SIZE / 2 - 1) * TILE_SIZE;
-        y = centerY - ((position - squaresPerSide) - squaresPerSide / 2) * TILE_SIZE;
-    }
-    else if (position < squaresPerSide * 3)
-    {
-        x = centerX + ((position - squaresPerSide * 2) - squaresPerSide / 2) * TILE_SIZE;
-        y = centerY - (GRID_SIZE / 2 - 1) * TILE_SIZE;
-    }
-    else
-    {
-        x = centerX + (GRID_SIZE / 2 - 1) * TILE_SIZE;
-        y = centerY + ((position - squaresPerSide * 3) - squaresPerSide / 2) * TILE_SIZE;
+    case 0: // Blue
+        currentPath = &bluePath;
+        break;
+    case 1: // Yellow
+        currentPath = &yellowPath;
+        break;
+    case 2: // Red
+        currentPath = &redPath;
+        break;
+    case 3: // Green
+        currentPath = &greenPath;
+        break;
+    default:
+        return QPointF(0, 0);
     }
 
-    return QPointF(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
+    if (position >= 0 && position < currentPath->size())
+    {
+        // Get the grid coordinates from the path
+        int gridX = (*currentPath)[position].x;
+        int gridY = (*currentPath)[position].y;
+
+        // Convert grid coordinates to pixel coordinates
+        float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
+        float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
+
+        return QPointF(pixelX, pixelY);
+    }
+
+    return QPointF(0, 0);
 }
+
 
 QRectF LudoGame::calculateTokenRect(const Token &token)
 {
     if (!token.inPlay)
     {
+        // Calculate home position for tokens not in play
         int tokenIndex = 0;
         for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i)
         {
@@ -671,21 +703,32 @@ QRectF LudoGame::calculateTokenRect(const Token &token)
 
         int row = tokenIndex / 2;
         int col = tokenIndex % 2;
-        const int GRID_OFFSET = TILE_SIZE / 2;
 
-        int startPositions[4][2] = {{2, 2}, {2, 11}, {11, 2}, {11, 11}};
-        int x = startPositions[currentPlayer][0] * TILE_SIZE + GRID_OFFSET + (col * TILE_SIZE) - PIECE_RADIUS;
-        int y = startPositions[currentPlayer][1] * TILE_SIZE + GRID_OFFSET + (row * TILE_SIZE) - PIECE_RADIUS;
+        // Starting positions for each player's home area
+        int startPositions[4][2] = {
+            {2, 2},   // Blue
+            {2, 11},  // Yellow
+            {11, 2},  // Red
+            {11, 11}  // Green
+        };
+
+        float x = (startPositions[currentPlayer][0] + col) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+        float y = (startPositions[currentPlayer][1] + row) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
 
         return QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
     }
     else
     {
-        int x = token.col * TILE_SIZE + TILE_SIZE / 2 - PIECE_RADIUS;
-        int y = token.row * TILE_SIZE + TILE_SIZE / 2 - PIECE_RADIUS;
-        return QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
+        // Calculate position for tokens in play
+        QPointF pos = calculateBoardPosition(token.position);
+        return QRectF(pos.x() - PIECE_RADIUS, 
+                     pos.y() - PIECE_RADIUS,
+                     PIECE_RADIUS * 2, 
+                     PIECE_RADIUS * 2);
     }
 }
+
+
 
 void LudoGame::verifyTokenPosition(const Token &token)
 {

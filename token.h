@@ -8,7 +8,7 @@ struct Token
     int row, col;
     bool inPlay;
     int position;
-    std::mutex tokenMutex;
+    mutable std::mutex tokenMutex;
     std::condition_variable tokenCV;
 
     Token();
