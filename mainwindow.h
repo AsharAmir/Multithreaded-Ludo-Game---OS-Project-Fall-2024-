@@ -1,3 +1,5 @@
+// mainwindow.h
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -47,6 +49,9 @@ private slots:
 private:
     void initializeBoard();
     void drawBoard();
+    void highlightSafeSquares();
+    void drawHomeZones();
+    void promptForTokenCount();
     void createPlayers();
     void moveToken(Player *player, int tokenId, int steps);
     bool checkCollision(int position);
@@ -83,6 +88,7 @@ private:
     int consecutiveSixesCount;
     QTimer *turnTimer;
     int turnCount;
+    int tokenCount;
     QVector<int> noSixCount;
 
     void initializeTokensForPlayer(int playerIndex);

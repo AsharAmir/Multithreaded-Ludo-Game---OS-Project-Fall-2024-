@@ -1,3 +1,4 @@
+//player.cpp
 #include "player.h"
 
 Player::Player(QColor color, int id)
@@ -39,6 +40,7 @@ bool Player::canEnterHome() const
 void Player::incrementHitCount()
 {
     hitCount++;
+    return;
 }
 
 Token *Player::getToken(int tokenId) const
@@ -69,18 +71,18 @@ void Player::setTokenPosition(int tokenId, int newPosition)
     }
 }
 
-void Player::initializeTokens(QGraphicsScene *scene, int startX, int startY)
+void Player::initializeTokens(QGraphicsScene *scene, int startX, int startY, int tokenCount)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < tokenCount; i++)
     {
         // Create a graphical representation for each token
         QGraphicsEllipseItem *tokenGraphic = scene->addEllipse(
-            startX + (i % 2) * 40, // Offset tokens in a 2x2 grid
-            startY + (i / 2) * 40,
+            startX + (i % 2) * 80, // Offset tokens in a 2x2 grid
+            startY + (i / 2) * 80,
             30, // Token size
             30,
             QPen(Qt::black),
-            QBrush(color));
+            QBrush(color.lighter()));
         graphics.push_back(tokenGraphic); // Store the graphical token
         tokens[i]->position = -1;         // Initialize off the board
     }

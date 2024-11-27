@@ -1,3 +1,5 @@
+//mainwindow.cpp
+
 #include "mainwindow.h"
 #include <QPainter>
 #include <QVBoxLayout>
@@ -6,9 +8,12 @@
 #include <QGraphicsDropShadowEffect>
 #include <QDebug>
 #include <QMutex>
+#include <QInputDialog>
 
 QMutex gameMutex;
 const int BOARD_POSITIONS = 52; // Total positions on the main track
+const int NUM_COLORS = 4;  // Since you have four players and color sets
+QColor colors[NUM_COLORS] = {Qt::red, Qt::green, Qt::yellow, Qt::blue};
 const QPoint PLAYER_START_POSITIONS[4] = {
     QPoint(1, 6),  // Red start
     QPoint(8, 1),  // Green start
@@ -18,10 +23,11 @@ const QPoint PLAYER_START_POSITIONS[4] = {
 
 const QPoint PLAYER_YARD_POSITIONS[4][4] = {
     {{1, 1}, {1, 4}, {4, 1}, {4, 4}},        // Red yard
-    {{1, 10}, {1, 13}, {4, 10}, {4, 13}},    // Green yard
-    {{10, 1}, {10, 4}, {13, 1}, {13, 4}},    // Yellow yard
+    {{10, 1}, {10, 4}, {13, 1}, {13, 4}},    // Green yard (corrected)
+    {{1, 10}, {1, 13}, {4, 10}, {4, 13}},    // Yellow yard (corrected)
     {{10, 10}, {10, 13}, {13, 10}, {13, 13}} // Blue yard
 };
+
 
 // MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), currentPlayer(0), gameStarted(false)
 // {
@@ -37,12 +43,30 @@ void MainWindow::initializeBoard()
     scene->setSceneRect(0, 0, BOARD_SIZE, BOARD_SIZE);
     view->setRenderHint(QPainter::Antialiasing);
 
+    for (int row = 0; row < GRID_SIZE; row++)
+    {
+        for (int col = 0; col < GRID_SIZE; col++)
+        {
+            // Draw a white rectangle for each grid cell
+            scene->addRect(
+                col * CELL_SIZE,
+                row * CELL_SIZE,
+                CELL_SIZE,
+                CELL_SIZE,
+                QPen(Qt::black),
+                QBrush(QColor(227, 203, 167))
+                );
+        }
+    }
     // Draw grid lines
     for (int i = 0; i <= GRID_SIZE; i++)
     {
         scene->addLine(i * CELL_SIZE, 0, i * CELL_SIZE, BOARD_SIZE, QPen(Qt::black));
         scene->addLine(0, i * CELL_SIZE, BOARD_SIZE, i * CELL_SIZE, QPen(Qt::black));
     }
+
+    highlightSafeSquares();
+    drawHomeZones();
 }
 
 void MainWindow::drawBoard()
@@ -72,7 +96,75 @@ void MainWindow::drawBoard()
             }
         }
     }
+    highlightSafeSquares();
+    drawHomeZones();
 }
+
+void MainWindow::highlightSafeSquares()
+{
+    QVector<QVector<QPoint>> safeSquares = {
+        {{2, 6}, {6, 2}, {6, 6}},  // Red safe squares
+        {{8, 2}, {12, 6}, {6, 6}},  // Green safe squares
+        {{2, 8}, {6, 12}, {6, 6}},  // Yellow safe squares
+        {{8, 12}, {12, 8}, {6, 6}}  // Blue safe squares
+    };
+
+    QColor safeColors[NUM_COLORS] = {Qt::red, Qt::green, Qt::yellow, Qt::blue};
+
+    for (int i = 0; i < safeSquares.size(); i++)
+    {
+        if (i >= NUM_COLORS) {
+            qDebug() << "Safe colors index out of bounds: " << i;
+            continue;
+        }
+
+        for (const QPoint &pos : safeSquares[i])
+        {
+            scene->addRect(
+                pos.x() * CELL_SIZE, pos.y() * CELL_SIZE,
+                CELL_SIZE, CELL_SIZE,
+                QPen(Qt::black),
+                QBrush(safeColors[i].lighter()));
+        }
+    }
+}
+
+
+
+void MainWindow::drawHomeZones()
+{
+    // Home paths for each player (leading to the center)
+    QVector<QVector<QPoint>> homePaths = {
+        {{7, 6}, {7, 5}, {7, 4}, {7, 3}, {7, 2}, {7, 1}}, // Red home
+        {{6, 7}, {5, 7}, {4, 7}, {3, 7}, {2, 7}, {1, 7}}, // Green home
+        {{7, 8}, {7, 9}, {7, 10}, {7, 11}, {7, 12}, {7, 13}}, // Yellow home
+        {{8, 7}, {9, 7}, {10, 7}, {11, 7}, {12, 7}, {13, 7}}  // Blue home
+    };
+
+    QColor homeColors[4] = {Qt::green, Qt::red, Qt::yellow, Qt::blue};
+
+    // Draw home paths for each player
+    for (int i = 0; i < homePaths.size(); i++)
+    {
+        for (const QPoint &pos : homePaths[i])
+        {
+            scene->addRect(
+                pos.x() * CELL_SIZE, pos.y() * CELL_SIZE,
+                CELL_SIZE, CELL_SIZE,
+                QPen(Qt::black),
+                QBrush(homeColors[i].darker()));
+        }
+    }
+
+    // Draw the central finishing square
+    scene->addRect(
+        6 * CELL_SIZE, 6 * CELL_SIZE,
+        3 * CELL_SIZE, 3 * CELL_SIZE,
+        QPen(Qt::black),
+        QBrush(Qt::white)
+    );
+}
+
 
 void MainWindow::updateGame()
 {
@@ -88,25 +180,39 @@ void MainWindow::createPlayers()
         Player *player = new Player(colors[i], i);
         players.push_back(player);
 
-        // Initialize tokens in yard positions
-        for (int j = 0; j < 4; j++)
-        {
-            QPoint yardPos = PLAYER_YARD_POSITIONS[i][j];
-            player->initializeTokens(scene, yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE);
-        }
+        // Initialize a single token in the yard position for each player
+        QPoint yardPos = PLAYER_YARD_POSITIONS[i][0]; // Use the first position
+        player->initializeTokens(scene, yardPos.x() * CELL_SIZE, yardPos.y() * CELL_SIZE, tokenCount);
+        qDebug() << "Player color:" << colors[i] 
+         << "Yard position:" << yardPos.x() << "," << yardPos.y();
+
+    }
+}
+
+void MainWindow::promptForTokenCount()
+{
+     bool ok;
+    QStringList options;
+    options << "1" << "2" << "3" << "4"; // Token options
+
+    // Create the input dialog for selecting the number of tokens
+    QString selectedTokens = QInputDialog::getItem(this, "Select Number of Tokens",
+                                                "Choose the number of tokens:", 
+                                                options, 0, false, &ok);
+
+    if (ok && !selectedTokens.isEmpty())
+    {
+        tokenCount = selectedTokens.toInt(); // Get the selected number of tokens
+
+        // Use this selected token number for further initialization in the game
+        qDebug() << "Selected number of tokens: " << tokenCount;
     }
 }
 
 void MainWindow::startGame()
-{
-    if (!playerTokensInitialized) {
-        // Initialize tokens for all players
-        for (int i = 0; i < 4; i++) {
-            initializeTokensForPlayer(i);
-        }
-        playerTokensInitialized = true;
-    }
-    
+{   
+    promptForTokenCount();
+    createPlayers();
     gameStarted = true;
     currentPlayerIndex = 0;
     statusLabel->setText("Game started! Player 1's turn.");
@@ -148,9 +254,9 @@ MainWindow::MainWindow(QWidget *parent)
     setFixedSize(1024, 768);
     setStyleSheet("background-color: #2C3E50;");
     setupUI();
-    initializeBoard();
-    createPlayers();
+    initializeBoard();    
     drawBoard();
+    createPlayers();
 
     // Initialize turn timer
     turnTimer = new QTimer(this);
@@ -392,36 +498,36 @@ bool isRolling = false;
 void MainWindow::rollDice()
 {
     qDebug() << "Rolling dice for player" << currentPlayerIndex;
-    
-    if (!playerTokensInitialized || currentPlayerIndex < 0 || currentPlayerIndex >= 4) {
-        qDebug() << "Invalid state detected";
+
+    if (currentPlayerIndex < 0 || currentPlayerIndex >= players.size()) {
+        qDebug() << "Invalid currentPlayerIndex:" << currentPlayerIndex;
         return;
     }
-    
+
     if (isRolling) {
         qDebug() << "Already rolling";
         return;
     }
     isRolling = true;
-    
+
     int diceValue = QRandomGenerator::global()->bounded(1, 7);
     diceLabel->setText(QString("Dice: %1").arg(diceValue));
     qDebug() << "Rolled:" << diceValue;
-    
+
     QVector<int> validTokens;
     for (int i = 0; i < TOKENS_PER_PLAYER; i++) {
         if (canMoveToken(currentPlayerIndex, i, diceValue)) {
             validTokens.append(i);
         }
     }
-    
+
     qDebug() << "Valid tokens:" << validTokens;
-    
+
     if (!validTokens.isEmpty()) {
         QDialog dialog(this);
         dialog.setWindowTitle("Select Token to Move");
         QVBoxLayout* layout = new QVBoxLayout(&dialog);
-        
+
         for (int tokenIndex : validTokens) {
             QPushButton* btn = new QPushButton(QString("Move Token %1").arg(tokenIndex + 1), &dialog);
             connect(btn, &QPushButton::clicked, [this, tokenIndex, diceValue, &dialog]() {
@@ -430,16 +536,17 @@ void MainWindow::rollDice()
             });
             layout->addWidget(btn);
         }
-        
+
         dialog.exec();
     }
     
-    currentPlayerIndex = (currentPlayerIndex + 1) % 4;
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     updatePlayerStats();
     statusLabel->setText(QString("Player %1's turn").arg(currentPlayerIndex + 1));
     
     isRolling = false;
 }
+
 
 
 // void MainWindow::moveSelectedToken(int playerIndex, int tokenIndex, int diceValue)
@@ -533,7 +640,7 @@ void MainWindow::moveToken(Player *player, int tokenId, int steps)
 //     }
 // }
 
-QPoint MainWindow::getboardCoordinates(int position, int /*playerId*/)
+QPoint MainWindow::getboardCoordinates(int position, int playerId)
 {
     // Calculate board coordinates based on position
     int x = (position % 8) * CELL_SIZE;
@@ -541,7 +648,7 @@ QPoint MainWindow::getboardCoordinates(int position, int /*playerId*/)
     return QPoint(x, y);
 }
 
-int MainWindow::calculateNewPosition(Player * /*player*/, int currentPos, int steps)
+int MainWindow::calculateNewPosition(Player *player, int currentPos, int steps)
 {
     // Calculate new position considering board boundaries
     int newPos = currentPos + steps;
@@ -727,6 +834,11 @@ void MainWindow::initializeTokenPositions()
 
 void MainWindow::moveSelectedToken(int playerIndex, int tokenIndex, int diceValue)
 {
+    if (playerIndex < 0 || playerIndex >= players.size() || tokenIndex < 0 || tokenIndex >= playerTokens[playerIndex].size()) {
+        qDebug() << "Invalid moveSelectedToken call: Player Index:" << playerIndex << " Token Index:" << tokenIndex;
+        return;
+    }
+
     QLabel* token = playerTokens[playerIndex][tokenIndex];
     QPoint currentPos = token->pos() / CELL_SIZE;
     
@@ -737,15 +849,21 @@ void MainWindow::moveSelectedToken(int playerIndex, int tokenIndex, int diceValu
     } else {
         // Move on board
         QPoint newPos = calculateNewPositionFromPoint(currentPos, diceValue);
-        token->move(newPos.x() * CELL_SIZE, newPos.y() * CELL_SIZE);
-        
-        // Check for captures
-        checkForCaptures(newPos, playerIndex);
+        if (isValidMove(newPos)) {
+            token->move(newPos.x() * CELL_SIZE, newPos.y() * CELL_SIZE);
+            checkForCaptures(newPos, playerIndex);
+        }
     }
 }
 
+
 bool MainWindow::canMoveToken(int playerIndex, int tokenIndex, int diceValue)
 {
+    if (playerIndex < 0 || playerIndex >= players.size() || tokenIndex < 0 || tokenIndex >= playerTokens[playerIndex].size()) {
+        qDebug() << "Invalid index in canMoveToken: Player Index:" << playerIndex << " Token Index:" << tokenIndex;
+        return false;
+    }
+
     QLabel* token = playerTokens[playerIndex][tokenIndex];
     QPoint pos = token->pos() / CELL_SIZE; // Convert to grid coordinates
     
@@ -762,6 +880,7 @@ bool MainWindow::canMoveToken(int playerIndex, int tokenIndex, int diceValue)
     
     return false;
 }
+
 
 bool MainWindow::isTokenInYard(const QPoint& pos, int playerIndex)
 {
@@ -827,3 +946,4 @@ void MainWindow::initializeTokensForPlayer(int playerIndex)
 }
 
 //ashar was here
+//hi achaaaaaaaaaar

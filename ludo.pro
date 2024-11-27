@@ -20,3 +20,5 @@ HEADERS += \
     dice.h \
     playerthread.h \
     masterthread.h
+
+CONFIG += debug

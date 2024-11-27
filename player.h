@@ -1,3 +1,5 @@
+//player.h
+
 #ifndef PLAYER_H
 #define PLAYER_H
 
@@ -13,7 +15,7 @@ public:
     Player(QColor color, int id);
     ~Player();
 
-    void initializeTokens(QGraphicsScene *scene, int startX, int startY);
+    void initializeTokens(QGraphicsScene *scene, int startX, int startY, int tokenCount);
     void updateTokenGraphics(int tokenId, int x, int y);
     void updateTokenGraphics(int tokenId, int newPosition);
     Token *getToken(int tokenId = 0) const; // Default parameter for backwards compatibility
