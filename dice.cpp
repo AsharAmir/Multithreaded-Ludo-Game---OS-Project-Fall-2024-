@@ -1,8 +1,8 @@
 #include "dice.h"
+#include "constants.h"
 
-Dice::Dice(QObject *parent) : QObject(parent), generator(QRandomGenerator::global()) {}
-
-int Dice::roll()
+Dice::Dice() : value(1), rotation(0.0f), isRolling(false)
 {
-    return generator->bounded(1, 7); // Use `->` to call the method on the pointer
+    shape = QRectF(0, 0, DICE_SIZE, DICE_SIZE);
 }
+

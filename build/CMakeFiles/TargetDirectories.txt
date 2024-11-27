@@ -1,0 +1,5 @@
+/home/maaz/Multithreaded-Ludo-Game---OS-Project-Fall-2024-/build/CMakeFiles/LudoGame.dir
+/home/maaz/Multithreaded-Ludo-Game---OS-Project-Fall-2024-/build/CMakeFiles/edit_cache.dir
+/home/maaz/Multithreaded-Ludo-Game---OS-Project-Fall-2024-/build/CMakeFiles/rebuild_cache.dir
+/home/maaz/Multithreaded-Ludo-Game---OS-Project-Fall-2024-/build/CMakeFiles/LudoGame_autogen_timestamp_deps.dir
+/home/maaz/Multithreaded-Ludo-Game---OS-Project-Fall-2024-/build/CMakeFiles/LudoGame_autogen.dir

@@ -1,9 +1,11 @@
 #include <QApplication>
-#include "mainwindow.h"
+#include "ludo_game.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     QApplication app(argc, argv);
-    MainWindow window;
-    window.show();
+    LudoGame game;
+    game.show();
     return app.exec();
 }
+

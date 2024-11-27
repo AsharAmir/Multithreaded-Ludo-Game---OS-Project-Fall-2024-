@@ -1,22 +1,16 @@
-// dice.h
-#ifndef DICE_H
-#define DICE_H
+#pragma once
 
-#include <QObject>
-#include <QRandomGenerator>
+#include <QRectF>
+#include <QElapsedTimer>
 
-class Dice : public QObject
+struct Dice
 {
-    Q_OBJECT
+    QRectF shape;
+    int value;
+    float rotation;
+    bool isRolling;
+    QElapsedTimer rollClock;
 
-public:
-    explicit Dice(QObject *parent = nullptr);
-    int roll();
-    int getCurrentValue() const { return currentValue; }
-
-private:
-    int currentValue;
-    QRandomGenerator *generator;
+    Dice();
 };
 
-#endif // DICE_H
