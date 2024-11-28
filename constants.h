@@ -12,6 +12,8 @@ const float ROTATION_SPEED = 720.0f; // degrees per second
 const int MIN_TOKENS = 1;
 const int BOARD_SQUARES = 52;
 const int SAFE_SQUARES_PER_PLAYER = 5;
+const int BOARD_WIDTH = GRID_SIZE * TILE_SIZE + DICE_SIZE + 180;
+const int BOARD_HEIGHT = GRID_SIZE * TILE_SIZE;
 
 extern const QPoint START_SQUARES[4];
 

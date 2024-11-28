@@ -1,11 +1,12 @@
+// main.cpp
 #include <QApplication>
-#include "ludo_game.h"
+#include "main_menu.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    LudoGame game;
-    game.show();
+    
+    MainMenu menu;
+    menu.show();
+    
     return app.exec();
 }
-

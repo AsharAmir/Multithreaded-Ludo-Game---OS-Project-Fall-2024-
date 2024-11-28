@@ -15,7 +15,8 @@ class LudoGame : public QMainWindow
     Q_OBJECT
 
 public:
-    LudoGame(QWidget *parent = nullptr);
+    // LudoGame(QWidget *parent = nullptr);
+    LudoGame(QWidget *parent = nullptr, int numTokens = 4);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -25,7 +26,7 @@ private:
     void drawLudoBoard(QPainter &painter);
     void drawPieces(QPainter &painter);
     void drawDice(QPainter &painter);
-    void initializePlayers();
+    void initializePlayers(int numTokens);
     void startGame();
     void playerThread(int playerId);
     void masterThread();

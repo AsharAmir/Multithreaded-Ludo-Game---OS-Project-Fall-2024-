@@ -7,18 +7,19 @@
 #include <QPainterPath>
 #include <QThread>
 #include "constants.h"
+#include <QMessageBox>
 
 
-LudoGame::LudoGame(QWidget *parent) : QMainWindow(parent)
+LudoGame::LudoGame(QWidget *parent, int numTokens) : QMainWindow(parent), remainingTime(10) // Updated constructor
 {
-    setFixedSize(GRID_SIZE * TILE_SIZE + DICE_SIZE + 60, GRID_SIZE * TILE_SIZE);
+    setFixedSize(BOARD_WIDTH, BOARD_HEIGHT);
     gameDice.shape.moveCenter(QPointF(GRID_SIZE * TILE_SIZE + 30 + DICE_SIZE / 2, 200 + DICE_SIZE / 2));
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&LudoGame::update));
     timer->start(16); // ~60 FPS
 
-    initializePlayers();
+    initializePlayers(numTokens); // Pass numTokens to initializePlayers
     initializePaths();
     startGame();
 
@@ -31,22 +32,72 @@ void LudoGame::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
+
+    // Enable anti-aliasing for smooth rendering
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    // Draw the Ludo Board
     drawLudoBoard(painter);
+
+    // Draw Game Pieces
     drawPieces(painter);
+
+    // Draw Dice
     drawDice(painter);
 
-    // Draw timer
-    painter.setPen(Qt::black);
-    painter.setFont(QFont("Arial", 12));
-    painter.drawText(QRect(GRID_SIZE * TILE_SIZE + 10, 10, 50, 30),
+    // **Draw Game Title**
+    painter.setPen(Qt::darkGray);
+    painter.setFont(QFont("Arial", 20, QFont::Bold));
+    // Move the title to the right of the board
+    painter.drawText(QRect(GRID_SIZE * TILE_SIZE - 10, 150, 200, 50),
                      Qt::AlignCenter,
-                     QString::number(remainingTime));
+                     "Ludo Game");
 
-    // Draw current player indicator
+
+    // **Draw Timer**
+    painter.setPen(Qt::black);
+    painter.setFont(QFont("Arial", 16, QFont::Bold));
+    painter.setBrush(QBrush(QColor(255, 255, 255, 200))); // Semi-transparent background
+    painter.drawRoundedRect(QRect(GRID_SIZE * TILE_SIZE + 40, 10, 120, 40), 8, 8);
+    painter.drawText(QRect(GRID_SIZE * TILE_SIZE + 40, 10, 120, 40),
+                     Qt::AlignCenter,
+                     QString("Time: %1s").arg(remainingTime));
+
+    // **Draw Current Player Indicator**
     QColor playerColors[4] = {Qt::blue, Qt::yellow, Qt::red, Qt::green};
+    QColor playerBorderColors[4] = {Qt::darkBlue, Qt::darkYellow, Qt::darkRed, Qt::darkGreen};
+
+    // painter.setBrush(playerColors[currentPlayer]);
+    // painter.setPen(playerBorderColors[currentPlayer]);
+    // painter.drawEllipse(GRID_SIZE * TILE_SIZE, 70, 40, 40);
+
+    // **Player Label**
+    painter.setPen(Qt::black);
+    painter.setFont(QFont("Arial", 14, QFont::Bold));
+
+    QString playerLabels[4] = {"Blue", "Yellow", "Red", "Green"};
+    QString playerText = QString("%1's turn now").arg(playerLabels[currentPlayer]);
+
+    // Use QFontMetrics to calculate the bounding box for the text
+    QFontMetrics fontMetrics(painter.font());
+    QRect textRect = fontMetrics.boundingRect(playerText);
+
+    // Add some padding to the calculated bounding rectangle
+    int padding = 10; // Adjust padding as needed
+    textRect.adjust(-padding, -padding, padding, padding);
+
+    // Move the rectangle to the desired position
+    textRect.moveTo(GRID_SIZE * TILE_SIZE, 70);
+
+    // Draw the rounded rectangle around the text with player color
     painter.setBrush(playerColors[currentPlayer]);
-    painter.drawEllipse(GRID_SIZE * TILE_SIZE + 10, 50, 20, 20);
+    painter.drawRoundedRect(textRect, 8, 8);
+
+    // Draw the text inside the rectangle
+    painter.drawText(textRect, Qt::AlignCenter, playerText);
+
 }
+
 
 void LudoGame::mousePressEvent(QMouseEvent *event)
 {
@@ -105,10 +156,10 @@ void LudoGame::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void LudoGame::initializePlayers()
+void LudoGame::initializePlayers(int numTokens) // Updated method signature
 {
-    std::cout << "Enter number of tokens per player (1-4): ";
-    std::cin >> numTokens;
+    // std::cout << "Enter number of tokens per player (1-4): ";
+    // std::cin >> numTokens;
 
     if (numTokens < MIN_TOKENS)
         numTokens = MIN_TOKENS;
@@ -197,12 +248,21 @@ void LudoGame::initializePaths()
 void LudoGame::drawLudoBoard(QPainter &painter)
 {
     // Colors
-    QColor redColor(255, 0, 0);
-    QColor greenColor(0, 255, 0);
-    QColor yellowColor(255, 255, 0);
-    QColor blueColor(0, 0, 255);
+    // QColor redColor(255, 0, 0);
+    // QColor greenColor(0, 255, 0);
+    // QColor yellowColor(255, 255, 0);
+    // QColor blueColor(0, 0, 255);
+    // QColor whiteColor(255, 255, 255);
+    // QColor greyColor(192, 192, 192);
+
+    //diff color palette
+    QColor greenColor(0, 100, 0);
+    QColor redColor(139, 0, 0);
+    QColor blueColor(0, 0, 139);
+    QColor yellowColor(204, 204, 0);
+    QColor greyColor(64, 64, 64);
     QColor whiteColor(255, 255, 255);
-    QColor greyColor(192, 192, 192);
+
 
     // Create the grid
     for (int row = 0; row < GRID_SIZE; ++row)
@@ -296,11 +356,18 @@ void LudoGame::drawLudoBoard(QPainter &painter)
 
 void LudoGame::drawPieces(QPainter &painter)
 {
+    // QColor colors[4] = {
+    //     QColor(0, 0, 255),   // Blue
+    //     QColor(255, 255, 0), // Yellow
+    //     QColor(255, 0, 0),   // Red
+    //     QColor(0, 255, 0)    // Green
+    // };
+
     QColor colors[4] = {
-        QColor(0, 0, 255),   // Blue
-        QColor(255, 255, 0), // Yellow
-        QColor(255, 0, 0),   // Red
-        QColor(0, 255, 0)    // Green
+        QColor(0, 0, 139),   // Blue
+        QColor(204, 204, 0), // Yellow
+        QColor(139, 0, 0),   // Red
+        QColor(0, 100, 0)    // Green
     };
 
     std::vector<PathCoordinate> *paths[4] = {&bluePath, &yellowPath, &redPath, &greenPath};
@@ -345,14 +412,17 @@ void LudoGame::drawPieces(QPainter &painter)
 void LudoGame::drawDice(QPainter &painter)
 {
     painter.save();
+
+    // Position and transform for dice
     painter.translate(gameDice.shape.center());
 
+    // Smooth dice rolling animation
     if (gameDice.isRolling)
     {
         qint64 elapsedTime = gameDice.rollClock.elapsed();
-        if (elapsedTime < 500)
+        if (elapsedTime < 700) // Rolling time extended to 700ms
         {
-            gameDice.rotation += 15.0f;
+            gameDice.rotation += 5.0f; // Smooth rotation increment
             painter.rotate(gameDice.rotation);
         }
         else
@@ -361,20 +431,19 @@ void LudoGame::drawDice(QPainter &painter)
         }
     }
 
-    QColor playerColors[4] = {
-        QColor(0, 0, 255),   // Blue
-        QColor(255, 255, 0), // Yellow
-        QColor(255, 0, 0),   // Red
-        QColor(0, 255, 0)    // Green
-    };
-
-    painter.fillRect(QRectF(-DICE_SIZE / 2, -DICE_SIZE / 2, DICE_SIZE, DICE_SIZE), playerColors[currentPlayer]);
+    // Draw dice background (3D effect)
+    QRectF diceRect(-DICE_SIZE / 2, -DICE_SIZE / 2, DICE_SIZE, DICE_SIZE);
+    QLinearGradient gradient(diceRect.topLeft(), diceRect.bottomRight());
+    gradient.setColorAt(0.0, QColor(255, 255, 255)); // Highlight
+    gradient.setColorAt(1.0, QColor(200, 200, 200)); // Shadow
+    painter.setBrush(gradient);
     painter.setPen(QPen(Qt::black, 2));
-    painter.drawRect(QRectF(-DICE_SIZE / 2, -DICE_SIZE / 2, DICE_SIZE, DICE_SIZE));
+    painter.drawRoundedRect(diceRect, 5, 5); // Rounded edges for a modern look
 
+    // Draw dots on the dice
     if (!gameDice.isRolling)
     {
-        painter.setBrush(Qt::white);
+        painter.setBrush(Qt::black); // Standard black dots
         QVector<QPointF> dotPositions;
         switch (gameDice.value)
         {
@@ -398,14 +467,22 @@ void LudoGame::drawDice(QPainter &painter)
             break;
         }
 
+        // Draw dots
         for (const auto &pos : dotPositions)
         {
-            painter.drawEllipse(pos, 3, 3);
+            painter.drawEllipse(pos, 4, 4); // Larger dots for better visibility
         }
     }
 
     painter.restore();
+
+    // Add "Roll the Dice" text
+    painter.setFont(QFont("Arial", 14, QFont::Bold));
+    painter.setPen(Qt::black);
+    painter.drawText(gameDice.shape.center().x() - 50, gameDice.shape.center().y() + DICE_SIZE + 20,
+                     "Roll the Dice"); // Text positioned near the dice
 }
+
 
 void LudoGame::rollDice()
 {
@@ -419,6 +496,7 @@ void LudoGame::rollDice()
 
     if (gameDice.value == 6)
     {
+        QMessageBox::information(this, "Ludo Game", "You rolled a 6!");
         consecutiveSixes++;
         if (consecutiveSixes == 3)
         {

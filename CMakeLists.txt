@@ -15,7 +15,7 @@ set(SOURCES
     token.cpp
     dice.cpp
     constants.cpp
-    # Add other necessary source files here
+    main_menu.cpp
 )
 
 add_executable(LudoGame ${SOURCES})
