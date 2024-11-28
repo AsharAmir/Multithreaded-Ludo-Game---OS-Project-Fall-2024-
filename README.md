@@ -6,7 +6,7 @@ This is a multithreaded Ludo game developed as an OS project for Fall 2024.
 
 ### Prerequisites
 
-- C++ compiler (e.g., g++)
+- C++ compiler
 - Qt framework
 - Make
 
