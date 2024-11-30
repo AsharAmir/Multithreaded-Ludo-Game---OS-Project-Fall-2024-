@@ -41,6 +41,7 @@ private:
     void verifyTokenPosition(const Token &token);
     void updateTurnTimer();
     void initializePaths();
+    void initializePlayerPaths();
 
     std::vector<std::vector<int>> ludoBoard;
     std::atomic<int> dice;
@@ -57,10 +58,15 @@ private:
     bool waitingForMove;
     Token *selectedToken;
     int consecutiveSixes;
-    std::vector<PathCoordinate> bluePath;
-    std::vector<PathCoordinate> redPath;
-    std::vector<PathCoordinate> yellowPath;
-    std::vector<PathCoordinate> greenPath;
+    // std::vector<PathCoordinate> bluePath;
+    // std::vector<PathCoordinate> redPath;
+    // std::vector<PathCoordinate> yellowPath;
+    // std::vector<PathCoordinate> greenPath;
+    // / Shared path for all players
+    std::vector<PathCoordinate> sharedPath;
+
+    // Safe zones for each player
+    std::vector<PathCoordinate> playerSafePaths[MAX_PLAYERS];
     std::mutex turnMutex;
     std::condition_variable turnCV;
     std::atomic<int> lastPlayer{-1};

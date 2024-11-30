@@ -198,70 +198,103 @@ void LudoGame::startGame()
     }
 }
 
+// void LudoGame::initializePaths()
+// {
+//     // Blue path
+//     bluePath = {
+//         {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6},
+//         // Blue's colored path
+//         {1, 7},
+//         {2, 7},
+//         {3, 7},
+//         {4, 7},
+//         {5, 7},
+//         {6, 7}};
+
+//     // Red path
+//     redPath = {
+//         {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0},
+//         // Red's colored path
+//         {7, 1},
+//         {7, 2},
+//         {7, 3},
+//         {7, 4},
+//         {7, 5},
+//         {7, 6}};
+
+//     // Yellow path
+//     yellowPath = {
+//         {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7},
+//         // Yellow's colored path
+//         {13, 7},
+//         {12, 7},
+//         {11, 7},
+//         {10, 7},
+//         {9, 7},
+//         {8, 7}};
+
+//     // Green path
+//     greenPath = {
+//         {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14},
+//         // Green's colored path
+//         {7, 13},
+//         {7, 12},
+//         {7, 11},
+//         {7, 10},
+//         {7, 9},
+//         {7, 8}};
+// }
+
 void LudoGame::initializePaths()
 {
-    // Blue path
-    bluePath = {
-        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6},
-        // Blue's colored path
-        {1, 7},
-        {2, 7},
-        {3, 7},
-        {4, 7},
-        {5, 7},
-        {6, 7}};
+    // Shared main path (common to all players)
+    sharedPath = {
+        // Blue's path (left vertical)
+        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
+        {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
+        
+        // Transition to Red's path (top horizontal)
+        {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
+        
+        // Red's path (right vertical)
+        {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
+        {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
+        
+        // Transition to Yellow's path (bottom horizontal)
+        {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
+        {7, 14}, {6, 14},
+        
+        // Yellow's path (left vertical)
+        {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8},
+        
+        // Transition to Green's path (left horizontal)
+        {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}
+    };
 
-    // Red path
-    redPath = {
-        {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0},
-        // Red's colored path
-        {7, 1},
-        {7, 2},
-        {7, 3},
-        {7, 4},
-        {7, 5},
-        {7, 6}};
-
-    // Yellow path
-    yellowPath = {
-        {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7},
-        // Yellow's colored path
-        {13, 7},
-        {12, 7},
-        {11, 7},
-        {10, 7},
-        {9, 7},
-        {8, 7}};
-
-    // Green path
-    greenPath = {
-        {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}, {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0}, {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6}, {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8}, {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14}, {7, 14},
-        // Green's colored path
-        {7, 13},
-        {7, 12},
-        {7, 11},
-        {7, 10},
-        {7, 9},
-        {7, 8}};
+    // Initialize individual paths
+    initializePlayerPaths();
 }
+
+void LudoGame::initializePlayerPaths()
+{
+    // Safe zones for each player (leading to the center)
+    playerSafePaths[0]  = {{1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}};  // Blue safe zone
+    playerSafePaths[2]  = {{7, 1}, {7, 2}, {7, 3}, {7, 4}, {7, 5}, {7, 6}};    // Red safe zone
+    playerSafePaths[1]  = {{13, 7}, {12, 7}, {11, 7}, {10, 7}, {9, 7}, {8, 7}}; // Yellow safe zone
+    playerSafePaths[3]  = {{7, 13}, {7, 12}, {7, 11}, {7, 10}, {7, 9}, {7, 8}};  // Green safe zone
+}
+
+
 
 void LudoGame::drawLudoBoard(QPainter &painter)
 {
-    // Colors
-    // QColor redColor(255, 0, 0);
-    // QColor greenColor(0, 255, 0);
-    // QColor yellowColor(255, 255, 0);
-    // QColor blueColor(0, 0, 255);
-    // QColor whiteColor(255, 255, 255);
-    // QColor greyColor(192, 192, 192);
+    QColor greenColor(50, 205, 50);    // Bright Lime Green
+    QColor redColor(220, 20, 60);      // Crimson Red
+    QColor blueColor(30, 144, 255);    // Dodger Blue
+    QColor yellowColor(255, 215, 0);   // Gold
+    QColor greyColor(169, 169, 169);   // Light Gray (for neutral areas)
+    QColor whiteColor(255, 255, 255);  // White (for background or highlight)
 
-    //diff color palette
-    QColor greenColor(0, 100, 0);
-    QColor redColor(139, 0, 0);
-    QColor blueColor(0, 0, 139);
-    QColor yellowColor(204, 204, 0);
-    QColor greyColor(64, 64, 64);
-    QColor whiteColor(255, 255, 255);
 
 
     // Create the grid
@@ -290,7 +323,9 @@ void LudoGame::drawLudoBoard(QPainter &painter)
 
             // Safe zones
             if ((row == 6 && col == 1) || (row == 1 && col == 8) ||
-                (row == 8 && col == 13) || (row == 13 && col == 6))
+                (row == 8 && col == 13) || (row == 13 && col == 6) || 
+                (row == 2 && col == 6)  || (row == 6 && col == 12) ||
+                (row == 8 && col == 2)  || (row == 12 && col == 8))
                 painter.fillRect(tile, greyColor);
         }
     }
@@ -354,23 +389,75 @@ void LudoGame::drawLudoBoard(QPainter &painter)
     painter.fillPath(redTrianglePath, blueColor);
 }
 
+// void LudoGame::drawPieces(QPainter &painter)
+// {
+//     // QColor colors[4] = {
+//     //     QColor(0, 0, 255),   // Blue
+//     //     QColor(255, 255, 0), // Yellow
+//     //     QColor(255, 0, 0),   // Red
+//     //     QColor(0, 255, 0)    // Green
+//     // };
+
+//     QColor colors[4] = {
+//         QColor(0, 0, 139),  // Dodger Blue: Bright and lively
+//         QColor(184, 134, 11),   // Golden Yellow: Warm and vibrant
+//         QColor(139, 0, 0),   // Crimson Red: Bold and striking
+//         QColor(50, 205, 50)    // Lime Green: Bright and fresh
+//     };
+
+
+//     std::vector<PathCoordinate> *paths[4] = {&bluePath, &yellowPath, &redPath, &greenPath};
+
+//     // Draw tokens for each player
+//     for (int p = 0; p < MAX_PLAYERS; p++)
+//     {
+//         for (const auto &token : players[p].tokens)
+//         {
+//             std::lock_guard<std::mutex> lock(token.tokenMutex);
+            
+//             QRectF tokenRect;
+//             if (!token.inPlay)
+//             {
+//                 // Calculate home position
+//                 int tokenIndex = &token - &players[p].tokens[0];
+//                 int row = tokenIndex / 2;
+//                 int col = tokenIndex % 2;
+                
+//                 int startPositions[4][2] = {{2, 2}, {2, 11}, {11, 2}, {11, 11}};
+//                 float x = (startPositions[p][0] + col) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+//                 float y = (startPositions[p][1] + row) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                
+//                 tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
+//             }
+//             else
+//             {
+//                 // Use token's current position on its path
+//                 const auto &pathPos = (*paths[p])[token.position];
+//                 float x = pathPos.x * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+//                 float y = pathPos.y * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+//                 tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
+//             }
+            
+//             painter.setBrush(colors[p]);
+//             painter.setPen(QPen(Qt::black, 2));
+//             painter.drawEllipse(tokenRect);
+//         }
+//     }
+// }
+
+
 void LudoGame::drawPieces(QPainter &painter)
 {
-    // QColor colors[4] = {
-    //     QColor(0, 0, 255),   // Blue
-    //     QColor(255, 255, 0), // Yellow
-    //     QColor(255, 0, 0),   // Red
-    //     QColor(0, 255, 0)    // Green
-    // };
-
+    // Color definition for the players
     QColor colors[4] = {
-        QColor(0, 0, 139),   // Blue
-        QColor(204, 204, 0), // Yellow
-        QColor(139, 0, 0),   // Red
-        QColor(0, 100, 0)    // Green
+        QColor(0, 0, 139),  // Dodger Blue: Bright and lively
+        QColor(184, 134, 11),   // Golden Yellow: Warm and vibrant
+        QColor(139, 0, 0),   // Crimson Red: Bold and striking
+        QColor(50, 205, 50)    // Lime Green: Bright and fresh
     };
 
-    std::vector<PathCoordinate> *paths[4] = {&bluePath, &yellowPath, &redPath, &greenPath};
+    // Use shared path for all players
+    std::vector<PathCoordinate> *paths[4] = {&sharedPath, &sharedPath, &sharedPath, &sharedPath};
 
     // Draw tokens for each player
     for (int p = 0; p < MAX_PLAYERS; p++)
@@ -395,7 +482,7 @@ void LudoGame::drawPieces(QPainter &painter)
             }
             else
             {
-                // Use token's current position on its path
+                // Use token's current position on the shared path
                 const auto &pathPos = (*paths[p])[token.position];
                 float x = pathPos.x * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
                 float y = pathPos.y * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
@@ -408,6 +495,7 @@ void LudoGame::drawPieces(QPainter &painter)
         }
     }
 }
+
 
 void LudoGame::drawDice(QPainter &painter)
 {
@@ -592,92 +680,275 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
     }
 }
 
+
+// void LudoGame::moveToken(Token &token, int spaces)
+// {
+//     std::lock_guard<std::mutex> lock(token.tokenMutex);
+
+//     // Debugging Output
+//     std::cout << "Current Player (roll " << spaces << "): " << currentPlayer << std::endl;
+
+//     if (!token.inPlay && spaces == 6)
+//     {
+//         // Place token at starting position
+//         token.inPlay = true;
+//         QPoint startPos = getStartingPosition(currentPlayer);
+//         token.row = startPos.y();
+//         token.col = startPos.x();
+
+//         // Debugging Output
+//         std::cout << "Start Position for Player " << currentPlayer << ": (" << token.col << ", " << token.row << ")" << std::endl;
+
+//         // Set the correct initial position based on player color
+//         switch (currentPlayer)
+//         {
+//         case 0: // Blue
+//             token.position = 0;
+//             break;
+//         case 1: // Yellow
+//             token.position = 13;
+//             break;
+//         case 2: // Red
+//             token.position = 26;  // Ensure correct position for red
+//             break;
+//         case 3: // Green
+//             token.position = 39;
+//             break;
+//         }
+
+//         std::cout << "Token Position set to: " << token.position << std::endl;
+//         update();
+//         return;
+//     }
+
+//     if (token.inPlay)
+//     {
+//         std::vector<PathCoordinate> *currentPath = nullptr;
+//         int pathOffset = 0;
+
+//         // Select the correct path and offset based on player color
+//         switch (currentPlayer)
+//         {
+//         case 0: // Blue
+//             currentPath = &bluePath;
+//             pathOffset = 0;
+//             break;
+//         case 1: // Yellow
+//             currentPath = &yellowPath;
+//             pathOffset = 13;
+//             break;
+//         case 2: // Red
+//             currentPath = &redPath;   // Make sure this is redPath for red player
+//             pathOffset = 26;  // Ensure red token has correct offset
+//             break;
+//         case 3: // Green
+//             currentPath = &greenPath;
+//             pathOffset = 39;
+//             break;
+//         }
+
+//         if (!currentPath) return;
+
+//         // Debugging Output
+//         int currentPathIndex = token.position - pathOffset;
+//         std::cout << "Current Path for Player " << currentPlayer << " selected" << std::endl;
+//         std::cout << "Current Path Index: " << currentPathIndex << ", New Path Index: " << (currentPathIndex + spaces) << std::endl;
+
+//         int newPathIndex = currentPathIndex + spaces;
+
+//         // Check if move is valid
+//         if (newPathIndex >= currentPath->size())
+//         {
+//             std::cout << "Move is out of bounds for the current path!" << std::endl;
+//             return;
+//         }
+
+//         // Update token's position
+//         token.position = newPathIndex + pathOffset;
+//         token.row = (*currentPath)[newPathIndex].y;
+//         token.col = (*currentPath)[newPathIndex].x;
+
+//         std::cout << "Token moved to: (" << token.col << ", " << token.row << "), Position: " << token.position << std::endl;
+
+//         // Check for hits with other players' tokens
+//         checkAndProcessHits(token, token.position, currentPlayer);
+//     }
+
+//     update();
+// }
+
+
 void LudoGame::moveToken(Token &token, int spaces)
 {
     std::lock_guard<std::mutex> lock(token.tokenMutex);
+
+    // Debugging Output
+    std::cout << "Current Player (roll " << spaces << "): " << currentPlayer << std::endl;
 
     if (!token.inPlay && spaces == 6)
     {
         // Place token at starting position
         token.inPlay = true;
-        QPoint startPos = getStartingPosition(currentPlayer);
-        token.row = startPos.y();
-        token.col = startPos.x();
-        
-        // Set the correct initial position based on player color
-        switch (currentPlayer)
-        {
-        case 0: // Blue
-            token.position = 0;
-            break;
-        case 1: // Yellow
-            token.position = 13;
-            break;
-        case 2: // Red
-            token.position = 26;
-            break;
-        case 3: // Green
-            token.position = 39;
-            break;
-        }
-        
+
+        // Starting positions for all players are offset along the shared path
+        // token.position = currentPlayer * 13; // Offset for starting position (Blue=0, Yellow=13, Red=26, Green=39)
+        // token.row = sharedPath[token.position].y;
+        // token.col = sharedPath[token.position].x;
+
+        // Correct the starting position for each player based on the order in sharedPath
+switch (currentPlayer) {
+    case 0: // Blue
+        token.position = 0; // Blue starts at the beginning of sharedPath
+        break;
+    case 1: // Yellow
+        token.position = 39; // Yellow starts after Green's path (index 39 in sharedPath)
+        break;
+    case 2: // Red
+        token.position = 13; // Red starts after Blue's path (index 13 in sharedPath)
+        break;
+    case 3: // Green
+        token.position = 26; // Green starts after Red's path (index 26 in sharedPath)
+        break;
+    default:
+        token.position = 0; // Default case to avoid undefined behavior
+        break;
+}
+
+token.row = sharedPath[token.position].y;  // Get the Y coordinate of the starting position
+token.col = sharedPath[token.position].x;  // Get the X coordinate of the starting position
+
+
+        // Debugging Output
+        std::cout << "Token placed in play at: (" << token.col << ", " << token.row << ") with Position: " << token.position << std::endl;
+
         update();
         return;
     }
 
     if (token.inPlay)
     {
-        std::vector<PathCoordinate> *currentPath = nullptr;
-        int pathOffset = 0;
-        
-        // Select the correct path and offset based on player color
-        switch (currentPlayer)
+        // Calculate the new position
+        int newPosition = token.position + spaces;
+
+        // Handle crossing into or completing the safe zone
+        int safeZoneStart = currentPlayer * 13 + sharedPath.size(); // Safe zones begin after the shared path
+        if (newPosition >= safeZoneStart && newPosition < safeZoneStart + 6)
         {
-        case 0: // Blue
-            currentPath = &bluePath;
-            pathOffset = 0;
-            break;
-        case 1: // Yellow
-            currentPath = &yellowPath;
-            pathOffset = 13;
-            break;
-        case 2: // Red
-            currentPath = &redPath;
-            pathOffset = 26;
-            break;
-        case 3: // Green
-            currentPath = &greenPath;
-            pathOffset = 39;
-            break;
+            // Safe zone logic
+            newPosition = safeZoneStart + (newPosition - safeZoneStart);
+            token.row = playerSafePaths[currentPlayer][newPosition - safeZoneStart].y;
+            token.col = playerSafePaths[currentPlayer][newPosition - safeZoneStart].x;
+
+            // Debugging Output
+            std::cout << "Token entered safe zone at: (" << token.col << ", " << token.row << ")" << std::endl;
         }
-
-        if (!currentPath) return;
-
-        // Calculate new position
-        int currentPathIndex = token.position - pathOffset;
-        int newPathIndex = currentPathIndex + spaces;
-        
-        // Check if move is valid
-        if (newPathIndex >= currentPath->size())
+        else if (newPosition >= sharedPath.size() + playerSafePaths[currentPlayer].size())
         {
-            // Token can't move beyond the end of the path
+            // If newPosition exceeds the path length, the token has reached the end
+            std::cout << "Token has completed the path!" << std::endl;
+            token.inPlay = false; // Token has reached the final position
+            update();
             return;
         }
+        else
+        {
+            // Regular move along the shared path
+            newPosition %= sharedPath.size(); // Wrap around the shared path
+            token.row = sharedPath[newPosition].y;
+            token.col = sharedPath[newPosition].x;
 
-        // Update token's position
-        token.position = newPathIndex + pathOffset;
-        token.row = (*currentPath)[newPathIndex].y;
-        token.col = (*currentPath)[newPathIndex].x;
+            // Debugging Output
+            std::cout << "Token moved to shared path position: (" << token.col << ", " << token.row << ") with Position: " << newPosition << std::endl;
+        }
 
-        // Check for hits with other players' tokens
-        checkAndProcessHits(token, token.position, currentPlayer);
+        // Update the token's position
+        token.position = newPosition;
+
+        // Check for hits (only on shared path, not in safe zones)
+        if (token.position < sharedPath.size())
+        {
+            checkAndProcessHits(token, token.position, currentPlayer);
+        }
     }
+
     update();
 }
 
 
+// void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
+// {
+//     for (int p = 0; p < MAX_PLAYERS; p++)
+//     {
+//         if (p != playerId)
+//         {
+//             for (auto &otherToken : players[p].tokens)
+//             {
+//                 if (otherToken.inPlay && otherToken.position == newPos)
+//                 {
+//                     bool isSafe = false;
+//                     for (int safe : players[p].safeSquares)
+//                     {
+//                         if (newPos == safe)
+//                         {
+//                             isSafe = true;
+//                             break;
+//                         }
+//                     }
+
+//                     if (!isSafe)
+//                     {
+//                         otherToken.inPlay = false;
+//                         players[p].hitRate--;
+//                         players[playerId].hitRate++;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
+
+// void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
+// {
+//     for (int p = 0; p < MAX_PLAYERS; p++)
+//     {
+//         if (p != playerId)
+//         {
+//             for (auto &otherToken : players[p].tokens)
+//             {
+//                 if (otherToken.inPlay && otherToken.position == newPos)
+//                 {
+//                     bool isSafe = false;
+//                     for (int safe : players[p].safeSquares)
+//                     {
+//                         if (newPos == safe)
+//                         {
+//                             isSafe = true;
+//                             break;
+//                         }
+//                     }
+
+//                     if (!isSafe)
+//                     {
+//                         otherToken.inPlay = false;
+//                         players[p].hitRate--;
+//                         players[playerId].hitRate++;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
 void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
 {
+    // Define safe squares (coordinates where hits should not occur)
+    std::vector<std::pair<int, int>> safeSquares = {
+        {6, 1}, {1, 8}, {8, 13}, {13, 6},
+        {2, 6}, {6, 12}, {8, 2}, {12, 8}
+    };
+
+    // Check for each player
     for (int p = 0; p < MAX_PLAYERS; p++)
     {
         if (p != playerId)
@@ -686,10 +957,15 @@ void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
             {
                 if (otherToken.inPlay && otherToken.position == newPos)
                 {
+                    // Check if the new position is in the safe zone
                     bool isSafe = false;
-                    for (int safe : players[p].safeSquares)
+                    int newRow = sharedPath[newPos].y;  // Get the row for the new position
+                    int newCol = sharedPath[newPos].x;  // Get the col for the new position
+                    
+                    // Check if the new position is a safe square
+                    for (const auto &safe : safeSquares)
                     {
-                        if (newPos == safe)
+                        if (newRow == safe.first && newCol == safe.second)
                         {
                             isSafe = true;
                             break;
@@ -708,6 +984,7 @@ void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
     }
 }
 
+
 QPoint LudoGame::getStartingPosition(int playerId)
 {
     switch (playerId)
@@ -725,31 +1002,52 @@ QPoint LudoGame::getStartingPosition(int playerId)
     }
 }
 
+// QPointF LudoGame::calculateBoardPosition(int position)
+// {
+//     // Convert board position to grid coordinates
+//     std::vector<PathCoordinate> *currentPath;
+//     switch (currentPlayer)
+//     {
+//     case 0: // Blue
+//         currentPath = &bluePath;
+//         break;
+//     case 1: // Yellow
+//         currentPath = &yellowPath;
+//         break;
+//     case 2: // Red
+//         currentPath = &redPath;
+//         break;
+//     case 3: // Green
+//         currentPath = &greenPath;
+//         break;
+//     default:
+//         return QPointF(0, 0);
+//     }
+
+//     if (position >= 0 && position < currentPath->size())
+//     {
+//         // Get the grid coordinates from the path
+//         int gridX = (*currentPath)[position].x;
+//         int gridY = (*currentPath)[position].y;
+
+//         // Convert grid coordinates to pixel coordinates
+//         float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
+//         float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
+
+//         return QPointF(pixelX, pixelY);
+//     }
+
+//     return QPointF(0, 0);
+// }
+
 QPointF LudoGame::calculateBoardPosition(int position)
 {
-    // Convert board position to grid coordinates
-    std::vector<PathCoordinate> *currentPath;
-    switch (currentPlayer)
-    {
-    case 0: // Blue
-        currentPath = &bluePath;
-        break;
-    case 1: // Yellow
-        currentPath = &yellowPath;
-        break;
-    case 2: // Red
-        currentPath = &redPath;
-        break;
-    case 3: // Green
-        currentPath = &greenPath;
-        break;
-    default:
-        return QPointF(0, 0);
-    }
+    // Use shared path for all players
+    std::vector<PathCoordinate> *currentPath = &sharedPath;
 
     if (position >= 0 && position < currentPath->size())
     {
-        // Get the grid coordinates from the path
+        // Get the grid coordinates from the shared path
         int gridX = (*currentPath)[position].x;
         int gridY = (*currentPath)[position].y;
 
