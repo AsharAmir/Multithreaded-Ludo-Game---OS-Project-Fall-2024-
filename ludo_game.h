@@ -58,12 +58,10 @@ private:
     bool waitingForMove;
     Token *selectedToken;
     int consecutiveSixes;
-    // std::vector<PathCoordinate> bluePath;
-    // std::vector<PathCoordinate> redPath;
-    // std::vector<PathCoordinate> yellowPath;
-    // std::vector<PathCoordinate> greenPath;
     // / Shared path for all players
     std::vector<PathCoordinate> sharedPath;
+    std::vector<int> currentRoundPlayers; // Stores the order of players for the current round
+
 
     // Safe zones for each player
     std::vector<PathCoordinate> playerSafePaths[MAX_PLAYERS];

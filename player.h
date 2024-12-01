@@ -12,6 +12,9 @@ struct Player
     std::atomic<bool> isActive;
     int homePosition;
     std::vector<int> safeSquares;
+    bool hasHit;  // Track if the player has hit another token
+    int unsuccessfulTurnsHits=0 ;
+    int unsuccessfulTurnsSixes=0 ;
 
     Player(int playerId = 0);
     Player& operator=(Player&& other) noexcept;
