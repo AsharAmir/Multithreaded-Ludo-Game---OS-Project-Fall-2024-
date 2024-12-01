@@ -236,9 +236,9 @@ void LudoGame::initializePlayerPaths()
 {
     // Safe zones for each player (leading to the center)
     playerSafePaths[0]  = {{1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}};  // Blue safe zone
-    playerSafePaths[1]  = {{7, 1}, {7, 2}, {7, 3}, {7, 4}, {7, 5}, {7, 6}};    // Red safe zone
-    playerSafePaths[2]  = {{7, 13}, {7, 12}, {7, 11}, {7, 10}, {7, 9}, {7, 8}};  // Green safe zone
-    playerSafePaths[3]  = {{13, 7}, {12, 7}, {11, 7}, {10, 7}, {9, 7}, {8, 7}}; // Yellow safe zone
+    playerSafePaths[1]  = {{7, 1}, {7, 2}, {7, 3}, {7, 4}, {7, 5}, {7, 6}};    // yellow safe zone
+    playerSafePaths[2]  = {{7, 13}, {7, 12}, {7, 11}, {7, 10}, {7, 9}, {7, 8}};  // Red safe zone
+    playerSafePaths[3]  = {{13, 7}, {12, 7}, {11, 7}, {10, 7}, {9, 7}, {8, 7}}; // Green safe zone
 }
 
 
