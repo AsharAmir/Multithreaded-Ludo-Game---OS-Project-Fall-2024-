@@ -190,6 +190,29 @@ void LudoGame::mousePressEvent(QMouseEvent *event)
     }
 }
 
+void LudoGame::calculateHighlightedPositions() {
+    highlightedCells.clear(); // Clear any previous highlights
+
+    const auto& player = players[currentPlayer];
+    const auto& path = playerPaths[currentPlayer];
+
+    for (const auto& token : player.tokens) {
+        if (!token.inPlay && gameDice.value == 6) {
+            // Token can enter play, highlight the starting position
+            highlightedCells.push_back(path[0]);
+        } else if (token.inPlay) {
+            int newPosition = token.position + gameDice.value;
+
+            // Ensure the new position is within the path
+            if (newPosition < path.size()) {
+                highlightedCells.push_back(path[newPosition]);
+            }
+        }
+    }
+
+    update(); // Trigger a repaint to show the highlights
+}
+
 
 void LudoGame::initializePlayers(int numTokens) // Updated method signature
 {
@@ -449,6 +472,17 @@ void LudoGame::drawLudoBoard(QPainter &painter)
     QPainterPath redTrianglePath;
     redTrianglePath.addPolygon(centerTriangle);
     painter.fillPath(redTrianglePath, blueColor);
+
+
+    //highlight the possible moves
+    painter.setBrush(QColor(128, 0, 128, 128)); // Semi-transparent purple
+    painter.setPen(Qt::NoPen);
+
+    for (const auto& cell : highlightedCells) {
+        float x = cell.x() * TILE_SIZE;
+        float y = cell.y() * TILE_SIZE;
+        painter.drawRect(QRectF(x, y, TILE_SIZE, TILE_SIZE));
+    }
 }
 
 void LudoGame::drawPieces(QPainter &painter)
@@ -608,6 +642,7 @@ void LudoGame::rollDice()
         cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
         // QMessageBox::information(this, "Ludo Game", "You rolled a 6!");
         waitingForMove = true;
+        calculateHighlightedPositions();
         selectedToken = nullptr;
         turnTimer->start();
     }
@@ -617,6 +652,7 @@ void LudoGame::rollDice()
         cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
         consecutiveSixes = 0;
         waitingForMove = true;
+        calculateHighlightedPositions();
         selectedToken = nullptr;
         turnTimer->start();
     }
@@ -852,7 +888,7 @@ void LudoGame::moveToken(Token &token, int spaces) {
         // Check for hits
         checkAndProcessHits(token, newPosition, currentPlayer);
     }
-
+    highlightedCells.clear();
     update();
 }
 

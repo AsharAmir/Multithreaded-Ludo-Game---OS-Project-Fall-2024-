@@ -44,6 +44,7 @@ private:
     void initializePaths();
     void initializeNoGoPaths();
     void initializePlayerPaths();
+    void calculateHighlightedPositions();
 
     std::vector<std::vector<int>> ludoBoard;
     std::atomic<int> dice;
@@ -65,6 +66,9 @@ private:
     std::vector<QPoint> playerPaths[4];
     std::vector<int> currentRoundPlayers; // Stores the order of players for the current round
     std::array<std::vector<QPoint>, 4> noGoPaths;
+
+    std::vector<QPoint> highlightedCells;
+
 
     // Safe zones for each player
     std::vector<PathCoordinate> playerSafePaths[MAX_PLAYERS];
