@@ -859,61 +859,114 @@ void LudoGame::moveToken(Token &token, int spaces) {
 
 
 
-void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
-{
-    // Define the safe zone coordinates
+// void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
+// {
+//     // Define the safe zone coordinates
+//     const std::vector<QPoint> safeZones = {
+//         {6, 2}, {8, 1}, {12, 6}, {13, 8}, {8, 12}, {6, 13}, {2, 8}, {1, 6}
+//     };
+
+//     for (int p = 0; p < MAX_PLAYERS; p++)
+//     {
+//         if (p == playerId) continue; // Skip checking against the current player's tokens
+
+//         for (auto &otherToken : players[p].tokens)
+//         {
+//             // Check if the other token is in play and occupies the same position as the current token
+//             if (otherToken.inPlay && otherToken.position == newPos)
+//             {
+//                 // Check if the position is in a safe zone
+//                 bool isSafe = false;
+
+//                 for (const QPoint &safePos : safeZones)
+//                 {
+//                     if (playerPaths[p][newPos] == safePos) // Compare coordinates
+//                     {
+//                         isSafe = true;
+//                         break;
+//                     }
+//                 }
+
+//                 // If not in a safe zone, process the hit
+//                 if (!isSafe)
+//                 {
+//                     // Deactivate the hit token and reset its position
+//                     otherToken.inPlay = false;
+//                     otherToken.position = -1; // Reset position to indicate it's no longer in play
+
+//                     // Update hit rates
+//                     players[p].hitRate--;
+//                     players[playerId].hitRate++;
+//                     players[playerId].unsuccessfulTurnsHits = 0;
+
+//                     // Mark the hitting player
+//                     players[playerId].hasHit = true;
+
+//                     std::cout << "[DEBUG] Player " << playerId << " hit Player " << p
+//                               << "'s token. Token is now inactive." << std::endl;
+//                     std::cout << "[DEBUG] Attacker coordinates: (" << token.col << ", " << token.row << ")"
+//                               << " | Victim coordinates: (" << otherToken.col << ", " << otherToken.row << ")" << std::endl;
+//                 }
+//                 else
+//                 {
+//                     std::cout << "[DEBUG] Player " << playerId << " attempted to hit Player " << p
+//                               << "'s token, but it is in a safe zone." << std::endl;
+//                 }
+//             }
+//         }
+//     }
+// }
+
+void LudoGame::checkAndProcessHits(Token &attacker, int attackerPos, int playerId) {
+    const auto& attackerPath = playerPaths[playerId];
     const std::vector<QPoint> safeZones = {
-        {6, 2}, {8, 1}, {12, 6}, {13, 8}, {8, 12}, {6, 13}, {2, 8}, {1, 6}
-    };
+    {6, 2}, {8, 1}, {12, 6}, {13, 8}, {8, 12}, {6, 13}, {2, 8}, {1, 6}
+};
 
-    for (int p = 0; p < MAX_PLAYERS; p++)
-    {
-        if (p == playerId) continue; // Skip checking against the current player's tokens
 
-        for (auto &otherToken : players[p].tokens)
-        {
-            // Check if the other token is in play and occupies the same position as the current token
-            if (otherToken.inPlay && otherToken.position == newPos)
-            {
-                // Check if the position is in a safe zone
-                bool isSafe = false;
+    // Validate attacker's position
+    if (attackerPos < 0 || attackerPos >= attackerPath.size()) {
+        std::cerr << "[ERROR] Invalid attacker position: " << attackerPos << std::endl;
+        return;
+    }
 
-                for (const QPoint &safePos : safeZones)
-                {
-                    if (playerPaths[p][newPos] == safePos) // Compare coordinates
-                    {
-                        isSafe = true;
-                        break;
-                    }
-                }
+    QPoint attackerCoord = attackerPath[attackerPos]; // Get attacker's board coordinates
 
-                // If not in a safe zone, process the hit
-                if (!isSafe)
-                {
-                    // Deactivate the hit token and reset its position
-                    otherToken.inPlay = false;
-                    otherToken.position = -1; // Reset position to indicate it's no longer in play
+    // Check against other players' tokens
+    for (int p = 0; p < MAX_PLAYERS; ++p) {
+        if (p == playerId) continue; // Skip self
+
+        const auto& victimPath = playerPaths[p];
+        for (auto& victim : players[p].tokens) {
+            if (!victim.inPlay) continue;
+
+            // Get victim's board coordinates
+            if (victim.position < 0 || victim.position >= victimPath.size()) continue;
+            QPoint victimCoord = victimPath[victim.position];
+
+            // Compare positions for a hit
+            if (attackerCoord == victimCoord) {
+                // Ensure position is not in a safe zone
+                if (std::find(safeZones.begin(), safeZones.end(), victimCoord) == safeZones.end()) {
+                    victim.inPlay = false; // Reset victim's status
+                    victim.position = -1;
 
                     // Update hit rates
                     players[p].hitRate--;
                     players[playerId].hitRate++;
                     players[playerId].unsuccessfulTurnsHits = 0;
-
-                    // Mark the hitting player
                     players[playerId].hasHit = true;
 
                     std::cout << "[DEBUG] Player " << playerId << " hit Player " << p
-                              << "'s token. Token is now inactive." << std::endl;
-                }
-                else
-                {
-                    std::cout << "[DEBUG] Player " << playerId << " attempted to hit Player " << p
-                              << "'s token, but it is in a safe zone." << std::endl;
+                              << "'s token at (" << victimCoord.x() << ", " << victimCoord.y() << ")." << std::endl;
+                } else {
+                    std::cout << "[DEBUG] Token in safe zone at (" << victimCoord.x() << ", " << victimCoord.y() << ")." << std::endl;
                 }
             }
         }
     }
 }
+
 
 
 
@@ -935,83 +988,127 @@ QPoint LudoGame::getStartingPosition(int playerId)
 }
 
 
-QPointF LudoGame::calculateBoardPosition(int playerId, int position)
-{
-    // Validate playerId
-    if (playerId < 0 || playerId >= MAX_PLAYERS) {
-        std::cerr << "[ERROR] Invalid player ID: " << playerId << std::endl;
-        return QPointF(0, 0);
-    }
+// QPointF LudoGame::calculateBoardPosition(int playerId, int position)
+// {
+//     // Validate playerId
+//     if (playerId < 0 || playerId >= MAX_PLAYERS) {
+//         std::cerr << "[ERROR] Invalid player ID: " << playerId << std::endl;
+//         return QPointF(0, 0);
+//     }
 
-    // Get the player's specific path
+//     // Get the player's specific path
+//     const std::vector<QPoint>& path = playerPaths[playerId];
+
+//     // Validate position
+//     if (position < 0 || position >= path.size()) {
+//         std::cerr << "[ERROR] Invalid position: " << position 
+//                   << " for player " << playerId << ". Path size: " << path.size() << std::endl;
+//         return QPointF(0, 0);
+//     }
+
+//     // Get the grid coordinates from the player's path
+//     int gridX = path[position].x();
+//     int gridY = path[position].y();
+
+//     // Convert grid coordinates to pixel coordinates
+//     float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
+//     float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
+
+//     return QPointF(pixelX, pixelY);
+// }
+
+QPointF LudoGame::calculateBoardPosition(int playerId, int position) {
     const std::vector<QPoint>& path = playerPaths[playerId];
 
     // Validate position
     if (position < 0 || position >= path.size()) {
-        std::cerr << "[ERROR] Invalid position: " << position 
-                  << " for player " << playerId << ". Path size: " << path.size() << std::endl;
-        return QPointF(0, 0);
+        return QPointF(-1, -1); // Return invalid point for out-of-bounds
     }
 
-    // Get the grid coordinates from the player's path
+    // Get the grid coordinates
     int gridX = path[position].x();
     int gridY = path[position].y();
 
     // Convert grid coordinates to pixel coordinates
-    float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
-    float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
+    float pixelX = gridX * TILE_SIZE;
+    float pixelY = gridY * TILE_SIZE;
 
     return QPointF(pixelX, pixelY);
 }
 
 
-QRectF LudoGame::calculateTokenRect(const Token &token)
-{
-    if (!token.inPlay)
-    {
-        // Calculate home position for tokens not in play
-        int tokenIndex = 0;
-        for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i)
-        {
-            if (&players[currentPlayer].tokens[i] == &token)
-            {
-                tokenIndex = i;
-                break;
-            }
-        }
 
+// QRectF LudoGame::calculateTokenRect(const Token &token)
+// {
+//     if (!token.inPlay)
+//     {
+//         // Calculate home position for tokens not in play
+//         int tokenIndex = 0;
+//         for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i)
+//         {
+//             if (&players[currentPlayer].tokens[i] == &token)
+//             {
+//                 tokenIndex = i;
+//                 break;
+//             }
+//         }
+
+//         int row = tokenIndex / 2;
+//         int col = tokenIndex % 2;
+
+//         // Starting positions for each player's home area
+//         int startPositions[4][2] = {
+//             {2, 2},   // Blue
+//             {2, 11},  // Yellow
+//             {11, 2},  // Red
+//             {11, 11}  // Green
+//         };
+
+//         float x = (startPositions[currentPlayer][0] + col) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+//         float y = (startPositions[currentPlayer][1] + row) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+
+//         return QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
+//     }
+//     else
+//     {
+//         // Calculate position for tokens in play using calculateBoardPosition
+//         QPointF pos = calculateBoardPosition(currentPlayer, token.position);
+
+//         // If the token is ready for the home path, validate its position
+//         if (token.readyForHome) {
+//             verifyTokenPosition(token);
+//         }
+
+//         return QRectF(pos.x() - PIECE_RADIUS,
+//                       pos.y() - PIECE_RADIUS,
+//                       PIECE_RADIUS * 2,
+//                       PIECE_RADIUS * 2);
+//     }
+// }
+
+QRectF LudoGame::calculateTokenRect(const Token &token) {
+    QPointF position;
+
+    if (!token.inPlay) {
+        // Calculate home position for tokens not in play
+        int tokenIndex = &token - &players[currentPlayer].tokens[0];
         int row = tokenIndex / 2;
         int col = tokenIndex % 2;
 
-        // Starting positions for each player's home area
-        int startPositions[4][2] = {
-            {2, 2},   // Blue
-            {2, 11},  // Yellow
-            {11, 2},  // Red
-            {11, 11}  // Green
-        };
-
-        float x = (startPositions[currentPlayer][0] + col) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-        float y = (startPositions[currentPlayer][1] + row) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-
-        return QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
+        int startPositions[4][2] = {{2, 2}, {2, 11}, {11, 2}, {11, 11}};
+        position = QPointF((startPositions[currentPlayer][0] + col) * TILE_SIZE,
+                           (startPositions[currentPlayer][1] + row) * TILE_SIZE);
+    } else {
+        // Use board position for tokens in play
+        position = calculateBoardPosition(currentPlayer, token.position);
     }
-    else
-    {
-        // Calculate position for tokens in play using calculateBoardPosition
-        QPointF pos = calculateBoardPosition(currentPlayer, token.position);
 
-        // If the token is ready for the home path, validate its position
-        if (token.readyForHome) {
-            verifyTokenPosition(token);
-        }
-
-        return QRectF(pos.x() - PIECE_RADIUS,
-                      pos.y() - PIECE_RADIUS,
-                      PIECE_RADIUS * 2,
-                      PIECE_RADIUS * 2);
-    }
+    // Center token in the grid square
+    return QRectF(position.x() + (TILE_SIZE - PIECE_RADIUS * 2) / 2,
+                  position.y() + (TILE_SIZE - PIECE_RADIUS * 2) / 2,
+                  PIECE_RADIUS * 2, PIECE_RADIUS * 2);
 }
+
 
 
 void LudoGame::verifyTokenPosition(const Token &token)
