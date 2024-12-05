@@ -34,9 +34,10 @@ private:
     void advanceTurn();
     void handleTokenSelection(const QPointF &mousePos);
     void moveToken(Token &token, int spaces);
+    void moveTokenTest(Token &token);
     void checkAndProcessHits(Token &token, int newPos, int playerId);
     QPoint getStartingPosition(int playerId);
-    QPointF calculateBoardPosition(int position);
+    QPointF calculateBoardPosition(int playerId, int position);
     QRectF calculateTokenRect(const Token &token);
     void verifyTokenPosition(const Token &token);
     void updateTurnTimer();
@@ -61,6 +62,7 @@ private:
     int consecutiveSixes;
     // / Shared path for all players
     std::vector<PathCoordinate> sharedPath;
+    std::vector<QPoint> playerPaths[4];
     std::vector<int> currentRoundPlayers; // Stores the order of players for the current round
     std::array<std::vector<QPoint>, 4> noGoPaths;
 

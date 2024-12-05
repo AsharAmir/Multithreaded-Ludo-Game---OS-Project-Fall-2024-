@@ -62,9 +62,14 @@ void LudoGame::paintEvent(QPaintEvent *event)
 
     // Draw the Ludo Board
     drawLudoBoard(painter);
-
+    
     // Draw Game Pieces
     drawPieces(painter);
+
+
+    
+
+    
 
     // Draw Dice
     drawDice(painter);
@@ -228,35 +233,109 @@ void LudoGame::startGame()
     }
 }
 
-void LudoGame::initializePaths()
-{
-    // Shared main path (common to all players)
-    sharedPath = {
-        // Blue's path (left vertical)
+void LudoGame::initializePaths() {
+    // Define full paths for each player, including normal and home paths.
+
+    for (int i = 0; i < 4; ++i) {
+        playerPaths[i].clear();
+    }
+    
+    // Blue's path
+    playerPaths[0] = {
+        // Normal flow
         {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
         {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
-        
-        // Transition to Red's path (top horizontal)
         {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
-        
-        // Red's path (right vertical)
         {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
         {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
-        
-        // Transition to Yellow's path (bottom horizontal)
         {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
-        {7, 14}, {6, 14},
-        
-        // Yellow's path (left vertical)
-        {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8},
-        
-        // Transition to Green's path (left horizontal)
-        {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}
+        {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9},
+        {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7},
+        // Home flow
+        {1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}
     };
 
-    // Initialize individual paths
+    // Yellow's path
+    playerPaths[1] = {
+        // Normal flow
+        {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9},
+        {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6},
+        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
+        {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
+        {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
+        {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
+        {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
+        {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
+        {7, 14},
+        // Home flow
+        {7, 13}, {7, 12}, {7, 11}, {7, 10}, {7, 9}, {7, 8}
+    };
+
+    // Red's path
+    playerPaths[2] = {
+        // Normal flow
+        {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
+        {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
+        {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
+        {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
+        {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9},
+        {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6},
+        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
+        {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
+        {7, 0},
+        // Home flow
+        {7, 1}, {7, 2}, {7, 3}, {7, 4}, {7, 5}, {7, 6}
+    };
+
+    // Green's path
+    playerPaths[3] = {
+        // Normal flow
+        {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
+        {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
+        {7, 14}, {6, 14}, {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9},
+        {5, 8}, {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6},
+        {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
+        {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
+        {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
+        {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
+        {14, 7},
+        // Home flow
+        {13, 7}, {12, 7}, {11, 7}, {10, 7}, {9, 7}, {8, 7}
+    };
+
     initializePlayerPaths();
 }
+
+
+// void LudoGame::initializePaths()
+// {
+//     // Shared main path (common to all players)
+//     sharedPath = {
+//         // Blue's path (left vertical)
+//         {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
+//         {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
+        
+//         // Transition to Red's path (top horizontal)
+//         {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
+        
+//         // Red's path (right vertical)
+//         {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
+//         {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
+        
+//         // Transition to Yellow's path (bottom horizontal)
+//         {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
+//         {7, 14}, {6, 14},
+        
+//         // Yellow's path (left vertical)
+//         {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8},
+        
+//         // Transition to Green's path (left horizontal)
+//         {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}
+//     };
+
+//     // Initialize individual paths
+//     initializePlayerPaths();
+// }
 
 void LudoGame::initializePlayerPaths()
 {
@@ -382,9 +461,6 @@ void LudoGame::drawPieces(QPainter &painter)
         QColor(50, 205, 50)    // Lime Green: Bright and fresh
     };
 
-    // Use shared path for all players
-    std::vector<PathCoordinate> *paths[4] = {&sharedPath, &sharedPath, &sharedPath, &sharedPath};
-
     // Draw tokens for each player
     for (int p = 0; p < MAX_PLAYERS; p++) {
         for (const auto &token : players[p].tokens) {
@@ -394,7 +470,7 @@ void LudoGame::drawPieces(QPainter &painter)
             float x = 0, y = 0; // Initialize for debugging
 
             if (!token.inPlay) {
-                // Calculate home position
+                // Calculate home position for tokens not in play
                 int tokenIndex = &token - &players[p].tokens[0];
                 int row = tokenIndex / 2;
                 int col = tokenIndex % 2;
@@ -405,17 +481,20 @@ void LudoGame::drawPieces(QPainter &painter)
 
                 tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
             } else {
-                if (token.readyForHome) {
-                    // Token is on the home path
-                    const auto &homePos = playerSafePaths[p][token.homePosition];
-                    x = homePos.x * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-                    y = homePos.y * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-                } else {
-                    // Token is on the main path
-                    const auto &pathPos = (*paths[p])[token.position];
-                    x = pathPos.x * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-                    y = pathPos.y * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                // Use playerPaths for all token positions
+                const std::vector<QPoint>& path = playerPaths[p];
+
+                if (token.position < 0 || token.position >= path.size()) {
+                    std::cerr << "[ERROR] Invalid token position: " << token.position
+                              << " for player " << p << ". Path size: " << path.size() << std::endl;
+                    continue;
                 }
+
+                // Get position from the player's path
+                const QPoint& pathPos = path[token.position];
+                x = pathPos.x() * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+                y = pathPos.y() * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
+
                 tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
             }
 
@@ -513,9 +592,9 @@ void LudoGame::drawDice(QPainter &painter)
 
 void LudoGame::rollDice()
 {
-    // gameDice.value = QRandomGenerator::global()->bounded(1, 7);
+    gameDice.value = QRandomGenerator::global()->bounded(5, 7);
     //testing
-    gameDice.value = 6;
+    // gameDice.value = 6;
     gameDice.isRolling = true;
     gameDice.rollClock.restart();
     gameDice.rotation = 0;
@@ -528,18 +607,9 @@ void LudoGame::rollDice()
         players[currentPlayer].unsuccessfulTurnsSixes = 0;
         cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
         // QMessageBox::information(this, "Ludo Game", "You rolled a 6!");
-        consecutiveSixes++;
-        if (consecutiveSixes == 3)
-        {
-            consecutiveSixes = 0;
-            advanceTurn();
-        }
-        else
-        {
-            waitingForMove = true;
-            selectedToken = nullptr;
-            turnTimer->start();
-        }
+        waitingForMove = true;
+        selectedToken = nullptr;
+        turnTimer->start();
     }
     else
     {
@@ -611,11 +681,13 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
             {
                 validMove = true;
                 moveToken(token, gameDice.value);
+                // moveTokenTest(token);
             }
             else if (token.inPlay)
             {
                 validMove = true;
                 moveToken(token, gameDice.value);
+                // moveTokenTest(token);
             }
 
             if (validMove)
@@ -639,69 +711,145 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
     }
 }
 
+// void LudoGame::moveTokenTest(Token &token) {
+//     int spaces;
+//     std::cout << "Enter the number of spaces to move the token: ";
+//     std::cin >> spaces;
 
-void LudoGame::moveToken(Token &token, int spaces)
-{
+//     // Validate input
+//     if (std::cin.fail() || spaces < 0) {
+//         std::cin.clear(); // Clear the error flag
+//         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
+//         std::cout << "Invalid input. Please enter a valid non-negative number." << std::endl;
+//         return;
+//     }
+
+//     std::lock_guard<std::mutex> lock(token.tokenMutex);
+//     std::cout << "[DEBUG] Current Player: " << currentPlayer << " | Roll: " << spaces << std::endl;
+
+//     if (!token.inPlay && spaces == 6) {
+//         token.inPlay = true;
+//         int startingPositions[4] = {0, 39, 13, 26};
+//         token.position = startingPositions[currentPlayer];
+//         token.row = sharedPath[token.position].y;
+//         token.col = sharedPath[token.position].x;
+//         token.hasCompletedCycle = false; // Reset cycle completion when token enters play
+//         std::cout << "[DEBUG] Token entered play at: (" << token.col << ", " << token.row << ") | Position: " << token.position << std::endl;
+//         update();
+//         return;
+//     }
+
+//     if (token.inPlay) {
+//         int newPosition = token.position + spaces;
+//         newPosition %= sharedPath.size(); // Wrap around the shared path
+
+//         // Check if the token completes its first cycle
+//         if (!token.hasCompletedCycle && newPosition < token.position) {
+//             token.hasCompletedCycle = true;
+//             std::cout << "[DEBUG] Token has completed its first cycle." << std::endl;
+//         }
+
+//         // Transition to the home path after completing a cycle
+//         QPoint currentPos(sharedPath[newPosition].x, sharedPath[newPosition].y);
+//         if (token.hasCompletedCycle &&
+//             std::find(noGoPaths[currentPlayer].begin(), noGoPaths[currentPlayer].end(), currentPos) != noGoPaths[currentPlayer].end() &&
+//             !token.readyForHome) {
+//             token.readyForHome = true;
+//             token.homePosition = (spaces - (newPosition - token.position) % playerSafePaths[currentPlayer].size());
+//             if (token.homePosition < 0) token.homePosition += playerSafePaths[currentPlayer].size(); // Ensure non-negative
+//             token.row = playerSafePaths[currentPlayer][token.homePosition].y;
+//             token.col = playerSafePaths[currentPlayer][token.homePosition].x;
+//             std::cout << "[DEBUG] Token is transitioning to home path at position: (" << token.col << ", " << token.row << ") | Home Position: " << token.homePosition << std::endl;
+//             update();
+//             return;
+//         }
+
+//         if (token.readyForHome) {
+//             // Handle movement along the home path
+//             int newHomePosition = token.homePosition + spaces;
+//             if (newHomePosition < playerSafePaths[currentPlayer].size()) {
+//                 token.homePosition = newHomePosition;
+//                 token.row = playerSafePaths[currentPlayer][newHomePosition].y;
+//                 token.col = playerSafePaths[currentPlayer][newHomePosition].x;
+//                 std::cout << "[DEBUG] Token moved along home path to: (" << token.col << ", " << token.row << ") | Home Position: " << newHomePosition << std::endl;
+//             } else {
+//                 std::cout << "[DEBUG] Token has scored a point by reaching the end of the home path." << std::endl;
+//                 token.inPlay = false;
+//                 token.scored = true;
+//             }
+//             update();
+//             return;
+//         }
+
+//         // Regular movement along the shared path
+//         token.position = newPosition;
+//         token.row = sharedPath[newPosition].y;
+//         token.col = sharedPath[newPosition].x;
+//         std::cout << "[DEBUG] Token continued along shared path to: (" << token.col << ", " << token.row << ") | Position: " << newPosition << std::endl;
+
+//         checkAndProcessHits(token, newPosition, currentPlayer);
+//     }
+
+//     update();
+// }
+
+
+void LudoGame::moveToken(Token &token, int spaces) {
     std::lock_guard<std::mutex> lock(token.tokenMutex);
     std::cout << "[DEBUG] Current Player: " << currentPlayer << " | Roll: " << spaces << std::endl;
 
+    // Get the current player's path
+    std::vector<QPoint>& path = playerPaths[currentPlayer];
+
+    // Token enters play if it's not in play and the roll is 6
     if (!token.inPlay && spaces == 6) {
         token.inPlay = true;
-        int startingPositions[4] = {0, 39, 13, 26};
-        token.position = startingPositions[currentPlayer];
-        token.row = sharedPath[token.position].y;
-        token.col = sharedPath[token.position].x;
+        token.position = 0; // Start at the first position of the path
+        token.row = path[token.position].y(); // Use y() method
+        token.col = path[token.position].x(); // Use x() method
         token.hasCompletedCycle = false; // Reset cycle completion when token enters play
         std::cout << "[DEBUG] Token entered play at: (" << token.col << ", " << token.row << ") | Position: " << token.position << std::endl;
         update();
         return;
     }
 
+    // If the token is in play
     if (token.inPlay) {
         int newPosition = token.position + spaces;
-        newPosition %= sharedPath.size(); // Wrap around the shared path
 
-        // Check if the token completes its first cycle
+        // Check if the token is still within the player's path
+        if (newPosition >= path.size()) {
+            std::cout << "[DEBUG] Token cannot move, end of path reached." << std::endl;
+            update();
+            return;
+        }
+
+        // Check if the token completes its first cycle (if applicable)
         if (!token.hasCompletedCycle && newPosition < token.position) {
             token.hasCompletedCycle = true;
             std::cout << "[DEBUG] Token has completed its first cycle." << std::endl;
         }
 
-        // Check if entering the no-go area after completing a cycle
-        QPoint currentPos(sharedPath[newPosition].x, sharedPath[newPosition].y);
-        if (token.hasCompletedCycle &&
-            std::find(noGoPaths[currentPlayer].begin(), noGoPaths[currentPlayer].end(), currentPos) != noGoPaths[currentPlayer].end() &&
-            !token.readyForHome) {
-            std::cout << "[DEBUG] Token is entering the no-go area, transitioning to home path." << std::endl;
+        // Check if the token reaches the home path
+        if (newPosition >= path.size() - 6 && !token.readyForHome) { // Last 6 tiles considered home path
             token.readyForHome = true;
-            token.homePosition = 0;
-            update();
-            return;
+            std::cout << "[DEBUG] Token is transitioning to home path." << std::endl;
         }
 
-        if (token.readyForHome) {
-            // Handle movement along the home path
-            int newHomePosition = token.homePosition + spaces;
-            if (newHomePosition < playerSafePaths[currentPlayer].size()) {
-                token.homePosition = newHomePosition;
-                token.row = playerSafePaths[currentPlayer][newHomePosition].y;
-                token.col = playerSafePaths[currentPlayer][newHomePosition].x;
-                std::cout << "[DEBUG] Token moved along home path to: (" << token.col << ", " << token.row << ") | Home Position: " << newHomePosition << std::endl;
-            } else {
-                std::cout << "[DEBUG] Token has scored a point by reaching the end of the home path." << std::endl;
-                token.inPlay = false;
-                token.scored = true;
-            }
-            update();
-            return;
-        }
-
-        // Regular movement along the shared path
+        // Handle movement along the path
         token.position = newPosition;
-        token.row = sharedPath[newPosition].y;
-        token.col = sharedPath[newPosition].x;
-        std::cout << "[DEBUG] Token continued along shared path to: (" << token.col << ", " << token.row << ") | Position: " << newPosition << std::endl;
+        token.row = path[newPosition].y(); // Use y() method
+        token.col = path[newPosition].x(); // Use x() method
+        std::cout << "[DEBUG] Token moved to: (" << token.col << ", " << token.row << ") | Position: " << newPosition << std::endl;
 
+        // Check if the token has reached the end of its path
+        if (newPosition == path.size() - 1) {
+            token.inPlay = false;
+            token.scored = true;
+            std::cout << "[DEBUG] Token has scored a point by reaching the end of the path." << std::endl;
+        }
+
+        // Check for hits
         checkAndProcessHits(token, newPosition, currentPlayer);
     }
 
@@ -710,46 +858,64 @@ void LudoGame::moveToken(Token &token, int spaces)
 
 
 
+
 void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
 {
+    // Define the safe zone coordinates
+    const std::vector<QPoint> safeZones = {
+        {6, 2}, {8, 1}, {12, 6}, {13, 8}, {8, 12}, {6, 13}, {2, 8}, {1, 6}
+    };
+
     for (int p = 0; p < MAX_PLAYERS; p++)
     {
-        if (p != playerId)
+        if (p == playerId) continue; // Skip checking against the current player's tokens
+
+        for (auto &otherToken : players[p].tokens)
         {
-            for (auto &otherToken : players[p].tokens)
+            // Check if the other token is in play and occupies the same position as the current token
+            if (otherToken.inPlay && otherToken.position == newPos)
             {
-                if (otherToken.inPlay && otherToken.position == newPos)
+                // Check if the position is in a safe zone
+                bool isSafe = false;
+
+                for (const QPoint &safePos : safeZones)
                 {
-                    // Check if the token is in a safe zone
-                    bool isSafe = false;
-
-                    // Check if the new position is in a safe zone for the opponent player
-                    for (const auto &safeZone : playerSafePaths[p])
+                    if (playerPaths[p][newPos] == safePos) // Compare coordinates
                     {
-                        if (newPos == (safeZone.y * GRID_SIZE + safeZone.x))
-                        {
-                            isSafe = true;
-                            break;
-                        }
+                        isSafe = true;
+                        break;
                     }
+                }
 
-                    // If not in a safe zone, the token can be hit
-                    if (!isSafe)
-                    {
-                        otherToken.inPlay = false;
-                        players[p].hitRate--;
-                        players[playerId].hitRate++;
-                        players[playerId].unsuccessfulTurnsHits = 0;
+                // If not in a safe zone, process the hit
+                if (!isSafe)
+                {
+                    // Deactivate the hit token and reset its position
+                    otherToken.inPlay = false;
+                    otherToken.position = -1; // Reset position to indicate it's no longer in play
 
-                        // Mark the player as having hit another token
-                        players[playerId].hasHit = true;
-                        std::cout << "Player " << playerId << " has hit a token. Player " << p << " token is now inactive." << std::endl;
-                    }
+                    // Update hit rates
+                    players[p].hitRate--;
+                    players[playerId].hitRate++;
+                    players[playerId].unsuccessfulTurnsHits = 0;
+
+                    // Mark the hitting player
+                    players[playerId].hasHit = true;
+
+                    std::cout << "[DEBUG] Player " << playerId << " hit Player " << p
+                              << "'s token. Token is now inactive." << std::endl;
+                }
+                else
+                {
+                    std::cout << "[DEBUG] Player " << playerId << " attempted to hit Player " << p
+                              << "'s token, but it is in a safe zone." << std::endl;
                 }
             }
         }
     }
 }
+
+
 
 QPoint LudoGame::getStartingPosition(int playerId)
 {
@@ -769,25 +935,33 @@ QPoint LudoGame::getStartingPosition(int playerId)
 }
 
 
-QPointF LudoGame::calculateBoardPosition(int position)
+QPointF LudoGame::calculateBoardPosition(int playerId, int position)
 {
-    // Use shared path for all players
-    std::vector<PathCoordinate> *currentPath = &sharedPath;
-
-    if (position >= 0 && position < currentPath->size())
-    {
-        // Get the grid coordinates from the shared path
-        int gridX = (*currentPath)[position].x;
-        int gridY = (*currentPath)[position].y;
-
-        // Convert grid coordinates to pixel coordinates
-        float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
-        float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
-
-        return QPointF(pixelX, pixelY);
+    // Validate playerId
+    if (playerId < 0 || playerId >= MAX_PLAYERS) {
+        std::cerr << "[ERROR] Invalid player ID: " << playerId << std::endl;
+        return QPointF(0, 0);
     }
 
-    return QPointF(0, 0);
+    // Get the player's specific path
+    const std::vector<QPoint>& path = playerPaths[playerId];
+
+    // Validate position
+    if (position < 0 || position >= path.size()) {
+        std::cerr << "[ERROR] Invalid position: " << position 
+                  << " for player " << playerId << ". Path size: " << path.size() << std::endl;
+        return QPointF(0, 0);
+    }
+
+    // Get the grid coordinates from the player's path
+    int gridX = path[position].x();
+    int gridY = path[position].y();
+
+    // Convert grid coordinates to pixel coordinates
+    float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
+    float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
+
+    return QPointF(pixelX, pixelY);
 }
 
 
@@ -824,15 +998,20 @@ QRectF LudoGame::calculateTokenRect(const Token &token)
     }
     else
     {
-        // Calculate position for tokens in play
-        QPointF pos = calculateBoardPosition(token.position);
-        return QRectF(pos.x() - PIECE_RADIUS, 
-                     pos.y() - PIECE_RADIUS,
-                     PIECE_RADIUS * 2, 
-                     PIECE_RADIUS * 2);
+        // Calculate position for tokens in play using calculateBoardPosition
+        QPointF pos = calculateBoardPosition(currentPlayer, token.position);
+
+        // If the token is ready for the home path, validate its position
+        if (token.readyForHome) {
+            verifyTokenPosition(token);
+        }
+
+        return QRectF(pos.x() - PIECE_RADIUS,
+                      pos.y() - PIECE_RADIUS,
+                      PIECE_RADIUS * 2,
+                      PIECE_RADIUS * 2);
     }
 }
-
 
 
 void LudoGame::verifyTokenPosition(const Token &token)
