@@ -3,6 +3,7 @@
 #include <vector>
 #include <atomic>
 #include "token.h"
+#include <QPointF>
 
 struct Player
 {
@@ -20,4 +21,7 @@ struct Player
     Player& operator=(Player&& other) noexcept;
     std::vector<std::pair<int, int>> previousPositions; // To store previous positions of tokens
     std::vector<bool> wasInPlay;
+
+    int score;
+    std::vector<QPointF> completedTokens;
 };

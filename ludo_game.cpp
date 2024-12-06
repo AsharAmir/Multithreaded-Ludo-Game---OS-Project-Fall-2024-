@@ -9,6 +9,17 @@
 #include "constants.h"
 #include <QMessageBox>
 #include <random>
+#include <QPushButton>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGraphicsOpacityEffect>
+#include <QMessageBox>
+#include <QIcon>
+#include <QFont>
+#include <QApplication>
+
+
 #include <map>
 using namespace std;
 
@@ -28,9 +39,85 @@ LudoGame::LudoGame(QWidget *parent, int numTokens) : QMainWindow(parent), remain
 
     initializeNoGoPaths();
 
+    pauseButton = new QPushButton("PAUSE", this);
+    pauseButton->setGeometry(width() - 100, 10, 80, 40);  // Position at the top-right corner
+    pauseButton->setStyleSheet("QPushButton { "
+                            "background-color: white; "
+                            "border: 2px solid black; "
+                            "border-radius: 10px; "
+                            "color: black; "
+                            "font-weight: bold; "
+                            "font-size: 14px; "
+                            "}");
+
+    connect(pauseButton, &QPushButton::clicked, this, &LudoGame::onPauseButtonClicked);
+
+    createPauseDialog();
+
     turnTimer = new QTimer(this);
     turnTimer->setInterval(1000);
     connect(turnTimer, &QTimer::timeout, this, &LudoGame::updateTurnTimer);
+}
+
+void LudoGame::createPauseDialog()
+{
+    pauseDialog = new QDialog(this);
+    pauseDialog->setWindowTitle("Pause Menu");
+    pauseDialog->setFixedSize(220, 150);  // Set fixed size for the dialog
+
+    // Create Resume and Quit buttons
+    QPushButton *resumeButton = new QPushButton("Resume", pauseDialog);
+    QPushButton *quitButton = new QPushButton("Quit Game", pauseDialog);
+
+    // Set custom styles for the buttons
+    resumeButton->setStyleSheet("QPushButton { font-size: 16px; background-color: lightgreen; border-radius: 10px; }");
+    quitButton->setStyleSheet("QPushButton { font-size: 16px; background-color: lightcoral; border-radius: 10px; }");
+
+    // Connect buttons to their respective slots
+    connect(resumeButton, &QPushButton::clicked, this, &LudoGame::onResumeButtonClicked);
+    connect(quitButton, &QPushButton::clicked, this, &LudoGame::onQuitButtonClicked);
+
+    // Arrange buttons vertically
+    QVBoxLayout *layout = new QVBoxLayout(pauseDialog);
+    layout->addWidget(resumeButton);
+    layout->addWidget(quitButton);
+    pauseDialog->setLayout(layout);
+}
+
+void LudoGame::onPauseButtonClicked()
+{
+    // Pause any timers or game logic (for example, if there's a turn timer)
+    turnTimer->stop();
+
+    // Dim the background to indicate pause state
+    QGraphicsOpacityEffect *dimEffect = new QGraphicsOpacityEffect(this);
+    dimEffect->setOpacity(0.5);
+    setGraphicsEffect(dimEffect);
+
+    // Show the pause dialog, blocking the game window
+    pauseDialog->exec();
+
+    // Restore the background after the dialog is closed
+    setGraphicsEffect(nullptr);
+}
+
+void LudoGame::onResumeButtonClicked()
+{
+    // Resume the game (e.g., restart timers)
+    turnTimer->start();
+
+    // Close the pause dialog
+    pauseDialog->close();
+}
+
+void LudoGame::onQuitButtonClicked()
+{
+    // Ask the user to confirm quitting
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Quit Game", "Are you sure you want to quit?",
+                                                                 QMessageBox::Yes | QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+        QApplication::quit();
+    }
 }
 
 void LudoGame::initializeNoGoPaths() {
@@ -69,11 +156,14 @@ void LudoGame::paintEvent(QPaintEvent *event)
     // Draw Dice
     drawDice(painter);
 
+    drawScorecard(painter);
+
+
     // **Draw Game Title**
     painter.setPen(Qt::darkGray);
     painter.setFont(QFont("Arial", 20, QFont::Bold));
     // Move the title to the right of the board
-    painter.drawText(QRect(GRID_SIZE * TILE_SIZE - 10, 150, 200, 50),
+    painter.drawText(QRect(GRID_SIZE * TILE_SIZE + 30, 60, 200, 50),
                      Qt::AlignCenter,
                      "Ludo Game");
 
@@ -92,10 +182,6 @@ void LudoGame::paintEvent(QPaintEvent *event)
 
     QColor playerBorderColors[4] = {Qt::darkBlue, Qt::darkYellow, Qt::darkRed, Qt::darkGreen};
 
-    // painter.setBrush(playerColors[currentPlayer]);
-    // painter.setPen(playerBorderColors[currentPlayer]);
-    // painter.drawEllipse(GRID_SIZE * TILE_SIZE, 70, 40, 40);
-
     // **Player Label**
     painter.setPen(Qt::black);
     painter.setFont(QFont("Arial", 14, QFont::Bold));
@@ -112,7 +198,7 @@ void LudoGame::paintEvent(QPaintEvent *event)
     textRect.adjust(-padding, -padding, padding, padding);
 
     // Move the rectangle to the desired position
-    textRect.moveTo(GRID_SIZE * TILE_SIZE, 70);
+    textRect.moveTo(GRID_SIZE * TILE_SIZE + 10, 110);
 
     // Draw the rounded rectangle around the text with player color
     painter.setBrush(playerColors[currentPlayer]);
@@ -121,8 +207,87 @@ void LudoGame::paintEvent(QPaintEvent *event)
     // Draw the text inside the rectangle
     painter.drawText(textRect, Qt::AlignCenter, playerText);
 
+
 }
 
+QPointF LudoGame::calculateSidebarPosition(int playerId, int tokenIndex) {
+    // Adjust these values as needed for spacing and alignment
+    const int sidebarOffsetX = GRID_SIZE * TILE_SIZE + 50; // X offset for the sidebar
+    const int sidebarOffsetY = 100; // Starting Y offset
+    const int tokenSpacing = TILE_SIZE; // Spacing between tokens
+
+    float x = sidebarOffsetX;
+    float y = sidebarOffsetY + (playerId * 100) + (tokenIndex * tokenSpacing);
+
+    return QPointF(x, y);
+}
+
+void LudoGame::drawScorecard(QPainter &painter) {
+    // Define colors and labels for players
+    QColor colors[4] = {QColor(0, 0, 139), QColor(184, 134, 11), QColor(139, 0, 0), QColor(50, 205, 50)};
+    QString playerLabels[4] = {"Blue", "Yellow", "Red", "Green"};
+
+    // Table dimensions (220 pixels wide in total)
+    const int TABLE_WIDTH = 220; // Total table width
+    const int TABLE_HEIGHT = 160; // Total height for 4 rows of players (40px each)
+    const int TILE_SIZE = TABLE_WIDTH / 3; // Each column will be 220/3 = 73px wide
+
+    const int MARGIN = 30; // Margin from the bottom-right corner
+
+    // Calculate position for bottom-right corner
+    int xPos = width() - TABLE_WIDTH - MARGIN; 
+    int yPos = height() - TABLE_HEIGHT - MARGIN;
+
+    // Draw grid (for player information)
+    painter.setPen(QPen(Qt::black, 2)); // Grid lines
+    painter.setBrush(Qt::white);
+
+    // Draw grid cells
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 3; ++col) {
+            painter.drawRect(xPos + col * TILE_SIZE, yPos + row * 40, TILE_SIZE, 40);
+        }
+    }
+
+    // Draw the player data in the grid (Player Name, Score, Tokens)
+    painter.setFont(QFont("Arial", 12, QFont::Bold));
+    for (int i = 0; i < MAX_PLAYERS; ++i) {
+        int row = i; // Row for each player (0 to 3)
+        
+        // Player Name Column (first column)
+        QRectF nameRect(xPos + 0 * TILE_SIZE + 5, yPos + row * 40 + 5, TILE_SIZE - 10, 40 - 10);
+        painter.drawText(nameRect, Qt::AlignLeft, playerLabels[i]);
+
+        // Score Column (second column)
+        QRectF scoreRect(xPos + 1 * TILE_SIZE + 5, yPos + row * 40 + 5, TILE_SIZE - 10, 40 - 10);
+        painter.drawText(scoreRect, Qt::AlignLeft, QString::number(players[i].score));
+
+        // Tokens Column (third column)
+        QRectF tokensRect(xPos + 2 * TILE_SIZE + 5, yPos + row * 40 + 5, TILE_SIZE - 10, 40 - 10);
+        // painter.drawText(tokensRect, Qt::AlignCenter, QString("Tokens"));
+
+        // Draw completed tokens as small colored circles
+        int tokenXPos = xPos + (2 * TILE_SIZE) + 5; // Right next to the "Tokens" column
+        int tokenYPos = yPos + row * 40 + 40 / 2 - 5;
+        for (size_t j = 0; j < players[i].completedTokens.size(); ++j) {
+            painter.setBrush(colors[i]);
+            painter.setPen(QPen(Qt::black, 2));
+            painter.drawEllipse(tokenXPos, tokenYPos + j * 12, 12, 12); // Draw token circles (larger tokens)
+        }
+    }
+
+    // Draw headers (larger font for headers)
+    painter.setFont(QFont("Arial", 12, QFont::Bold)); // Larger font for headers
+
+    QRectF headerNameRect(xPos, yPos - 30, TILE_SIZE, 40);
+    painter.drawText(headerNameRect, Qt::AlignCenter, "Player");
+
+    QRectF headerScoreRect(xPos + TILE_SIZE, yPos - 30, TILE_SIZE, 40);
+    painter.drawText(headerScoreRect, Qt::AlignCenter, "Score");
+
+    QRectF headerTokensRect(xPos + TILE_SIZE * 2, yPos - 30, TILE_SIZE, 40);
+    painter.drawText(headerTokensRect, Qt::AlignCenter, "Tokens");
+}
 
 void LudoGame::mousePressEvent(QMouseEvent *event)
 {
@@ -211,9 +376,6 @@ void LudoGame::calculateHighlightedPositions() {
 
 void LudoGame::initializePlayers(int numTokens) // Updated method signature
 {
-    // std::cout << "Enter number of tokens per player (1-4): ";
-    // std::cin >> numTokens;
-
     if (numTokens < MIN_TOKENS)
         numTokens = MIN_TOKENS;
     if (numTokens > MAX_TOKENS)
@@ -324,37 +486,6 @@ void LudoGame::initializePaths() {
     initializePlayerPaths();
 }
 
-
-// void LudoGame::initializePaths()
-// {
-//     // Shared main path (common to all players)
-//     sharedPath = {
-//         // Blue's path (left vertical)
-//         {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6},
-//         {6, 5}, {6, 4}, {6, 3}, {6, 2}, {6, 1}, {6, 0},
-        
-//         // Transition to Red's path (top horizontal)
-//         {7, 0}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5},
-        
-//         // Red's path (right vertical)
-//         {9, 6}, {10, 6}, {11, 6}, {12, 6}, {13, 6}, {14, 6},
-//         {14, 7}, {14, 8}, {13, 8}, {12, 8}, {11, 8}, {10, 8}, {9, 8},
-        
-//         // Transition to Yellow's path (bottom horizontal)
-//         {8, 9}, {8, 10}, {8, 11}, {8, 12}, {8, 13}, {8, 14},
-//         {7, 14}, {6, 14},
-        
-//         // Yellow's path (left vertical)
-//         {6, 13}, {6, 12}, {6, 11}, {6, 10}, {6, 9}, {5, 8},
-        
-//         // Transition to Green's path (left horizontal)
-//         {4, 8}, {3, 8}, {2, 8}, {1, 8}, {0, 8}, {0, 7}, {0, 6}
-//     };
-
-//     // Initialize individual paths
-//     initializePlayerPaths();
-// }
-
 void LudoGame::initializePlayerPaths()
 {
     // Safe zones for each player (leading to the center)
@@ -363,8 +494,6 @@ void LudoGame::initializePlayerPaths()
     playerSafePaths[1]  = {{7, 13}, {7, 12}, {7, 11}, {7, 10}, {7, 9}, {7, 8}};  // Red safe zone
     playerSafePaths[3]  = {{13, 7}, {12, 7}, {11, 7}, {10, 7}, {9, 7}, {8, 7}}; // Green safe zone
 }
-
-
 
 void LudoGame::drawLudoBoard(QPainter &painter)
 {
@@ -527,13 +656,6 @@ void LudoGame::drawPieces(QPainter &painter)
                 tokenRect = QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
             }
 
-            // Debugging output for token rendering
-            // std::cout << "[DEBUG] Player: " << p
-            //           << " | Token: (" << x << ", " << y << ")"
-            //           << " | In Play: " << token.inPlay
-            //           << " | Ready for Home: " << token.readyForHome
-            //           << " | Scored: " << token.scored
-            //           << std::endl;
 
             painter.setBrush(colors[p]);
             painter.setPen(QPen(Qt::black, 2));
@@ -543,12 +665,9 @@ void LudoGame::drawPieces(QPainter &painter)
 }
 
 
-
 void LudoGame::drawDice(QPainter &painter)
 {
     painter.save();
-
-    // Position and transform for dice
     painter.translate(gameDice.shape.center());
 
     // Smooth dice rolling animation
@@ -612,11 +731,12 @@ void LudoGame::drawDice(QPainter &painter)
     painter.restore();
 
     // Add "Roll the Dice" text
-    painter.setFont(QFont("Arial", 14, QFont::Bold));
+    painter.setFont(QFont("Arial", 20, QFont::Bold));
     painter.setPen(Qt::black);
-    painter.drawText(gameDice.shape.center().x() - 50, gameDice.shape.center().y() + DICE_SIZE + 20,
+    painter.drawText(gameDice.shape.center().x(), gameDice.shape.center().y() + DICE_SIZE + 90,
                      "Roll the Dice"); // Text positioned near the dice
 }
+
 
 
 void LudoGame::rollDice()
@@ -633,45 +753,13 @@ void LudoGame::rollDice()
 
     if (gameDice.value == 6)
     {
-        consecutiveSixes++;
         players[currentPlayer].unsuccessfulTurnsSixes = 0;
         cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
         // QMessageBox::information(this, "Ludo Game", "You rolled a 6!");
-       
-       if (consecutiveSixes == 3)
-        {
-            std::cout << "Player " << currentPlayer << " rolled three consecutive sixes. Turn lost!" << std::endl;
-            std::cout << "Undoing token moves for Player " << currentPlayer << std::endl;
-
-             for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i) {
-                if (!players[currentPlayer].wasInPlay[i]) {
-                    // If the token was not in play, move it back to home
-                    players[currentPlayer].tokens[i].position = players[currentPlayer].homePosition;
-                    players[currentPlayer].tokens[i].inPlay = false;
-                } else {
-                    // If the token was in play, restore its previous position
-                    players[currentPlayer].tokens[i].col = players[currentPlayer].previousPositions[i].first;
-                    players[currentPlayer].tokens[i].row = players[currentPlayer].previousPositions[i].second;
-                }
-            }
-
-            // Debugging output
-            std::cout << "Token coordinates after undo for Player " << currentPlayer << ":\n";
-            for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i) {
-                std::cout << "Token " << i << ": (" << players[currentPlayer].tokens[i].col << ", " 
-                          << players[currentPlayer].tokens[i].row << ")\n";
-            }
-            consecutiveSixes = 0;
-            advanceTurn();
-        }
-        else
-        {
-            waitingForMove = true;
-            calculateHighlightedPositions();
-            selectedToken = nullptr;
-            turnTimer->start();
-        }
-       
+        waitingForMove = true;
+        calculateHighlightedPositions();
+        selectedToken = nullptr;
+        turnTimer->start();
     }
     else
     {
@@ -686,6 +774,7 @@ void LudoGame::rollDice()
 
     update();
 }
+
 
 void LudoGame::advanceTurn()
 {
@@ -780,89 +869,6 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
     }
 }
 
-// void LudoGame::moveTokenTest(Token &token) {
-//     int spaces;
-//     std::cout << "Enter the number of spaces to move the token: ";
-//     std::cin >> spaces;
-
-//     // Validate input
-//     if (std::cin.fail() || spaces < 0) {
-//         std::cin.clear(); // Clear the error flag
-//         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
-//         std::cout << "Invalid input. Please enter a valid non-negative number." << std::endl;
-//         return;
-//     }
-
-//     std::lock_guard<std::mutex> lock(token.tokenMutex);
-//     std::cout << "[DEBUG] Current Player: " << currentPlayer << " | Roll: " << spaces << std::endl;
-
-//     if (!token.inPlay && spaces == 6) {
-//         token.inPlay = true;
-//         int startingPositions[4] = {0, 39, 13, 26};
-//         token.position = startingPositions[currentPlayer];
-//         token.row = sharedPath[token.position].y;
-//         token.col = sharedPath[token.position].x;
-//         token.hasCompletedCycle = false; // Reset cycle completion when token enters play
-//         std::cout << "[DEBUG] Token entered play at: (" << token.col << ", " << token.row << ") | Position: " << token.position << std::endl;
-//         update();
-//         return;
-//     }
-
-//     if (token.inPlay) {
-//         int newPosition = token.position + spaces;
-//         newPosition %= sharedPath.size(); // Wrap around the shared path
-
-//         // Check if the token completes its first cycle
-//         if (!token.hasCompletedCycle && newPosition < token.position) {
-//             token.hasCompletedCycle = true;
-//             std::cout << "[DEBUG] Token has completed its first cycle." << std::endl;
-//         }
-
-//         // Transition to the home path after completing a cycle
-//         QPoint currentPos(sharedPath[newPosition].x, sharedPath[newPosition].y);
-//         if (token.hasCompletedCycle &&
-//             std::find(noGoPaths[currentPlayer].begin(), noGoPaths[currentPlayer].end(), currentPos) != noGoPaths[currentPlayer].end() &&
-//             !token.readyForHome) {
-//             token.readyForHome = true;
-//             token.homePosition = (spaces - (newPosition - token.position) % playerSafePaths[currentPlayer].size());
-//             if (token.homePosition < 0) token.homePosition += playerSafePaths[currentPlayer].size(); // Ensure non-negative
-//             token.row = playerSafePaths[currentPlayer][token.homePosition].y;
-//             token.col = playerSafePaths[currentPlayer][token.homePosition].x;
-//             std::cout << "[DEBUG] Token is transitioning to home path at position: (" << token.col << ", " << token.row << ") | Home Position: " << token.homePosition << std::endl;
-//             update();
-//             return;
-//         }
-
-//         if (token.readyForHome) {
-//             // Handle movement along the home path
-//             int newHomePosition = token.homePosition + spaces;
-//             if (newHomePosition < playerSafePaths[currentPlayer].size()) {
-//                 token.homePosition = newHomePosition;
-//                 token.row = playerSafePaths[currentPlayer][newHomePosition].y;
-//                 token.col = playerSafePaths[currentPlayer][newHomePosition].x;
-//                 std::cout << "[DEBUG] Token moved along home path to: (" << token.col << ", " << token.row << ") | Home Position: " << newHomePosition << std::endl;
-//             } else {
-//                 std::cout << "[DEBUG] Token has scored a point by reaching the end of the home path." << std::endl;
-//                 token.inPlay = false;
-//                 token.scored = true;
-//             }
-//             update();
-//             return;
-//         }
-
-//         // Regular movement along the shared path
-//         token.position = newPosition;
-//         token.row = sharedPath[newPosition].y;
-//         token.col = sharedPath[newPosition].x;
-//         std::cout << "[DEBUG] Token continued along shared path to: (" << token.col << ", " << token.row << ") | Position: " << newPosition << std::endl;
-
-//         checkAndProcessHits(token, newPosition, currentPlayer);
-//     }
-
-//     update();
-// }
-
-
 void LudoGame::moveToken(Token &token, int spaces) {
     std::lock_guard<std::mutex> lock(token.tokenMutex);
     std::cout << "[DEBUG] Current Player: " << currentPlayer << " | Roll: " << spaces << std::endl;
@@ -913,78 +919,29 @@ void LudoGame::moveToken(Token &token, int spaces) {
 
         // Check if the token has reached the end of its path
         if (newPosition == path.size() - 1) {
+            // Mark the token as completed
             token.inPlay = false;
             token.scored = true;
             std::cout << "[DEBUG] Token has scored a point by reaching the end of the path." << std::endl;
+
+            // Move the token to the sidebar and update the player's score
+            QPointF sidebarPosition = calculateSidebarPosition(currentPlayer, players[currentPlayer].completedTokens.size());
+            players[currentPlayer].completedTokens.push_back(sidebarPosition);
+            players[currentPlayer].score++;  // Increase the player's score
+            std::cout << "[DEBUG] Player " << currentPlayer << "'s score: " << players[currentPlayer].score << std::endl;
+
+            token.inPlay = false;
         }
 
         // Check for hits
         checkAndProcessHits(token, newPosition, currentPlayer);
     }
+
     highlightedCells.clear();
     update();
 }
 
 
-
-
-// void LudoGame::checkAndProcessHits(Token &token, int newPos, int playerId)
-// {
-//     // Define the safe zone coordinates
-//     const std::vector<QPoint> safeZones = {
-//         {6, 2}, {8, 1}, {12, 6}, {13, 8}, {8, 12}, {6, 13}, {2, 8}, {1, 6}
-//     };
-
-//     for (int p = 0; p < MAX_PLAYERS; p++)
-//     {
-//         if (p == playerId) continue; // Skip checking against the current player's tokens
-
-//         for (auto &otherToken : players[p].tokens)
-//         {
-//             // Check if the other token is in play and occupies the same position as the current token
-//             if (otherToken.inPlay && otherToken.position == newPos)
-//             {
-//                 // Check if the position is in a safe zone
-//                 bool isSafe = false;
-
-//                 for (const QPoint &safePos : safeZones)
-//                 {
-//                     if (playerPaths[p][newPos] == safePos) // Compare coordinates
-//                     {
-//                         isSafe = true;
-//                         break;
-//                     }
-//                 }
-
-//                 // If not in a safe zone, process the hit
-//                 if (!isSafe)
-//                 {
-//                     // Deactivate the hit token and reset its position
-//                     otherToken.inPlay = false;
-//                     otherToken.position = -1; // Reset position to indicate it's no longer in play
-
-//                     // Update hit rates
-//                     players[p].hitRate--;
-//                     players[playerId].hitRate++;
-//                     players[playerId].unsuccessfulTurnsHits = 0;
-
-//                     // Mark the hitting player
-//                     players[playerId].hasHit = true;
-
-//                     std::cout << "[DEBUG] Player " << playerId << " hit Player " << p
-//                               << "'s token. Token is now inactive." << std::endl;
-//                     std::cout << "[DEBUG] Attacker coordinates: (" << token.col << ", " << token.row << ")"
-//                               << " | Victim coordinates: (" << otherToken.col << ", " << otherToken.row << ")" << std::endl;
-//                 }
-//                 else
-//                 {
-//                     std::cout << "[DEBUG] Player " << playerId << " attempted to hit Player " << p
-//                               << "'s token, but it is in a safe zone." << std::endl;
-//                 }
-//             }
-//         }
-//     }
-// }
 
 void LudoGame::checkAndProcessHits(Token &attacker, int attackerPos, int playerId) {
     const auto& attackerPath = playerPaths[playerId];
@@ -1037,8 +994,6 @@ void LudoGame::checkAndProcessHits(Token &attacker, int attackerPos, int playerI
 }
 
 
-
-
 QPoint LudoGame::getStartingPosition(int playerId)
 {
     switch (playerId)
@@ -1056,35 +1011,6 @@ QPoint LudoGame::getStartingPosition(int playerId)
     }
 }
 
-
-// QPointF LudoGame::calculateBoardPosition(int playerId, int position)
-// {
-//     // Validate playerId
-//     if (playerId < 0 || playerId >= MAX_PLAYERS) {
-//         std::cerr << "[ERROR] Invalid player ID: " << playerId << std::endl;
-//         return QPointF(0, 0);
-//     }
-
-//     // Get the player's specific path
-//     const std::vector<QPoint>& path = playerPaths[playerId];
-
-//     // Validate position
-//     if (position < 0 || position >= path.size()) {
-//         std::cerr << "[ERROR] Invalid position: " << position 
-//                   << " for player " << playerId << ". Path size: " << path.size() << std::endl;
-//         return QPointF(0, 0);
-//     }
-
-//     // Get the grid coordinates from the player's path
-//     int gridX = path[position].x();
-//     int gridY = path[position].y();
-
-//     // Convert grid coordinates to pixel coordinates
-//     float pixelX = gridX * TILE_SIZE + TILE_SIZE / 2;
-//     float pixelY = gridY * TILE_SIZE + TILE_SIZE / 2;
-
-//     return QPointF(pixelX, pixelY);
-// }
 
 QPointF LudoGame::calculateBoardPosition(int playerId, int position) {
     const std::vector<QPoint>& path = playerPaths[playerId];
@@ -1106,54 +1032,6 @@ QPointF LudoGame::calculateBoardPosition(int playerId, int position) {
 }
 
 
-
-// QRectF LudoGame::calculateTokenRect(const Token &token)
-// {
-//     if (!token.inPlay)
-//     {
-//         // Calculate home position for tokens not in play
-//         int tokenIndex = 0;
-//         for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i)
-//         {
-//             if (&players[currentPlayer].tokens[i] == &token)
-//             {
-//                 tokenIndex = i;
-//                 break;
-//             }
-//         }
-
-//         int row = tokenIndex / 2;
-//         int col = tokenIndex % 2;
-
-//         // Starting positions for each player's home area
-//         int startPositions[4][2] = {
-//             {2, 2},   // Blue
-//             {2, 11},  // Yellow
-//             {11, 2},  // Red
-//             {11, 11}  // Green
-//         };
-
-//         float x = (startPositions[currentPlayer][0] + col) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-//         float y = (startPositions[currentPlayer][1] + row) * TILE_SIZE + (TILE_SIZE - PIECE_RADIUS * 2) / 2;
-
-//         return QRectF(x, y, PIECE_RADIUS * 2, PIECE_RADIUS * 2);
-//     }
-//     else
-//     {
-//         // Calculate position for tokens in play using calculateBoardPosition
-//         QPointF pos = calculateBoardPosition(currentPlayer, token.position);
-
-//         // If the token is ready for the home path, validate its position
-//         if (token.readyForHome) {
-//             verifyTokenPosition(token);
-//         }
-
-//         return QRectF(pos.x() - PIECE_RADIUS,
-//                       pos.y() - PIECE_RADIUS,
-//                       PIECE_RADIUS * 2,
-//                       PIECE_RADIUS * 2);
-//     }
-// }
 
 QRectF LudoGame::calculateTokenRect(const Token &token) {
     QPointF position;

@@ -8,6 +8,10 @@
 #include <condition_variable>
 #include "player.h"
 #include "dice.h"
+#include <QPushButton>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include "constants.h"
 
 class LudoGame : public QMainWindow
@@ -40,11 +44,18 @@ private:
     QPointF calculateBoardPosition(int playerId, int position);
     QRectF calculateTokenRect(const Token &token);
     void verifyTokenPosition(const Token &token);
+    QPointF calculateSidebarPosition(int playerId, int tokenIndex);
+    void drawScorecard(QPainter &painter);
     void updateTurnTimer();
     void initializePaths();
     void initializeNoGoPaths();
     void initializePlayerPaths();
     void calculateHighlightedPositions();
+
+    void onPauseButtonClicked();
+    void onResumeButtonClicked();
+    void onQuitButtonClicked();
+    void createPauseDialog();
 
     std::vector<std::vector<int>> ludoBoard;
     std::atomic<int> dice;
@@ -75,4 +86,8 @@ private:
     std::mutex turnMutex;
     std::condition_variable turnCV;
     std::atomic<int> lastPlayer{-1};
+
+    QPushButton *pauseButton;
+    QDialog *pauseDialog;
+
 };
