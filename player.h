@@ -18,4 +18,6 @@ struct Player
 
     Player(int playerId = 0);
     Player& operator=(Player&& other) noexcept;
+    std::vector<std::pair<int, int>> previousPositions; // To store previous positions of tokens
+    std::vector<bool> wasInPlay;
 };

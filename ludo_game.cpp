@@ -9,7 +9,7 @@
 #include "constants.h"
 #include <QMessageBox>
 #include <random>
-
+#include <map>
 using namespace std;
 
 
@@ -65,11 +65,6 @@ void LudoGame::paintEvent(QPaintEvent *event)
     
     // Draw Game Pieces
     drawPieces(painter);
-
-
-    
-
-    
 
     // Draw Dice
     drawDice(painter);
@@ -638,13 +633,45 @@ void LudoGame::rollDice()
 
     if (gameDice.value == 6)
     {
+        consecutiveSixes++;
         players[currentPlayer].unsuccessfulTurnsSixes = 0;
         cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
         // QMessageBox::information(this, "Ludo Game", "You rolled a 6!");
-        waitingForMove = true;
-        calculateHighlightedPositions();
-        selectedToken = nullptr;
-        turnTimer->start();
+       
+       if (consecutiveSixes == 3)
+        {
+            std::cout << "Player " << currentPlayer << " rolled three consecutive sixes. Turn lost!" << std::endl;
+            std::cout << "Undoing token moves for Player " << currentPlayer << std::endl;
+
+             for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i) {
+                if (!players[currentPlayer].wasInPlay[i]) {
+                    // If the token was not in play, move it back to home
+                    players[currentPlayer].tokens[i].position = players[currentPlayer].homePosition;
+                    players[currentPlayer].tokens[i].inPlay = false;
+                } else {
+                    // If the token was in play, restore its previous position
+                    players[currentPlayer].tokens[i].col = players[currentPlayer].previousPositions[i].first;
+                    players[currentPlayer].tokens[i].row = players[currentPlayer].previousPositions[i].second;
+                }
+            }
+
+            // Debugging output
+            std::cout << "Token coordinates after undo for Player " << currentPlayer << ":\n";
+            for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i) {
+                std::cout << "Token " << i << ": (" << players[currentPlayer].tokens[i].col << ", " 
+                          << players[currentPlayer].tokens[i].row << ")\n";
+            }
+            consecutiveSixes = 0;
+            advanceTurn();
+        }
+        else
+        {
+            waitingForMove = true;
+            calculateHighlightedPositions();
+            selectedToken = nullptr;
+            turnTimer->start();
+        }
+       
     }
     else
     {
@@ -664,21 +691,27 @@ void LudoGame::advanceTurn()
 {
     if (currentRoundPlayers.empty()) // If round is over, prepare a new random order
     {
-        // Reinitialize the players array
+      // Reinitialize the players array
         currentRoundPlayers = {0, 1, 2, 3};
-
-        // Declare the random number generator
-        std::random_device rd;              // Seed generator
-        std::mt19937 rng(rd());             // Mersenne Twister engine
-
-        // Shuffle the players until we get a different player than the current one
-        do {
-            std::shuffle(currentRoundPlayers.begin(), currentRoundPlayers.end(), rng);
-        } while (currentRoundPlayers.front() == currentPlayer);
-    }
+        std::shuffle(currentRoundPlayers.begin(), currentRoundPlayers.end(), *QRandomGenerator::global());
+   }
 
     // Assign the next player and remove them from the round
     currentPlayer = currentRoundPlayers.back();
+
+    std::cout << "Initial token coordinates for Player " << currentPlayer << ":\n";
+    for (size_t i = 0; i < players[currentPlayer].tokens.size(); ++i) {
+        std::cout << "Token " << i << ": (" << players[currentPlayer].tokens[i].col << ", " 
+                  << players[currentPlayer].tokens[i].row << ")\n";
+    }
+    players[currentPlayer].previousPositions.clear();
+    players[currentPlayer].wasInPlay.clear();
+
+    for (auto& token : players[currentPlayer].tokens) {
+        players[currentPlayer].previousPositions.push_back({token.col, token.row});
+        players[currentPlayer].wasInPlay.push_back(token.inPlay);
+    }
+
     currentRoundPlayers.pop_back();
 
     // Debugging output
