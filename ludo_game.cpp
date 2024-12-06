@@ -18,6 +18,15 @@
 #include <QIcon>
 #include <QFont>
 #include <QApplication>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QPropertyAnimation>
+#include <QEasingCurve>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QTimer>
+
 
 
 #include <map>
@@ -738,23 +747,24 @@ void LudoGame::drawDice(QPainter &painter)
 }
 
 
-
 void LudoGame::rollDice()
 {
     gameDice.value = QRandomGenerator::global()->bounded(5, 7);
-    //testing
+    // testing
     // gameDice.value = 6;
     gameDice.isRolling = true;
     gameDice.rollClock.restart();
     gameDice.rotation = 0;
-    players[currentPlayer].hasHit=false;
+    players[currentPlayer].hasHit = false;
     remainingTime = 10;
     turnTimer->stop();
 
     if (gameDice.value == 6)
     {
+        std::cout << "Player " << currentPlayer << " rolled a 6!" << std::endl;
         players[currentPlayer].unsuccessfulTurnsSixes = 0;
-        cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
+        cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl
+             << endl;
         // QMessageBox::information(this, "Ludo Game", "You rolled a 6!");
         waitingForMove = true;
         calculateHighlightedPositions();
@@ -764,7 +774,8 @@ void LudoGame::rollDice()
     else
     {
         players[currentPlayer].unsuccessfulTurnsSixes++;
-        cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl << endl;
+        cout << "Current Player " << currentPlayer << " Unsuccessful Turns : " << players[currentPlayer].unsuccessfulTurnsSixes << endl
+             << endl;
         consecutiveSixes = 0;
         waitingForMove = true;
         calculateHighlightedPositions();
@@ -773,6 +784,48 @@ void LudoGame::rollDice()
     }
 
     update();
+}
+
+void LudoGame::triggerParticleEffect()
+{
+    // std::cout << "Triggering particle effect for rolling a 6!" << std::endl;
+    // Create a QGraphicsScene for particle effects
+    QGraphicsScene *scene = new QGraphicsScene(this);
+    QGraphicsView *particleView = new QGraphicsView(scene, this);
+
+    // Position the particle view over the dice area
+    QRectF diceRect = gameDice.shape.boundingRect();
+    particleView->setGeometry(diceRect.x() + 30, diceRect.y() + 30, 100, 100);
+    particleView->setStyleSheet("background: transparent;");
+    particleView->setFrameStyle(QFrame::NoFrame);
+    particleView->show();
+
+    // Generate particles
+    for (int i = 0; i < 20; ++i)
+    {
+        QGraphicsEllipseItem *particle = scene->addEllipse(50, 50, 5, 5, QPen(), QBrush(Qt::yellow));
+        int dx = QRandomGenerator::global()->bounded(-50, 50);
+        int dy = QRandomGenerator::global()->bounded(-50, 50);
+
+        // Create a QPropertyAnimation for the particle
+        QPropertyAnimation *animation = new QPropertyAnimation(particle, "pos");
+        animation->setDuration(500);
+        animation->setStartValue(QPointF(50, 50)); // Start at the center
+        animation->setEndValue(QPointF(50 + dx, 50 + dy)); // Move outward
+        animation->setEasingCurve(QEasingCurve::OutQuad);
+
+        connect(animation, &QPropertyAnimation::finished, particle, [scene, particle]() {
+            scene->removeItem(particle);
+            delete particle;
+        });
+
+        animation->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+
+    // Remove the particle view after 700ms
+    QTimer::singleShot(700, particleView, [particleView]() {
+        particleView->deleteLater();
+    });
 }
 
 
@@ -839,6 +892,9 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
             {
                 validMove = true;
                 moveToken(token, gameDice.value);
+                std::cout << "player hit a 6 and triggering particles now" << std::endl;
+                triggerParticleEffect();
+                std::cout << "triggered particles" << std::endl;
                 // moveTokenTest(token);
             }
             else if (token.inPlay)

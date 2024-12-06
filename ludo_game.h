@@ -56,6 +56,7 @@ private:
     void onResumeButtonClicked();
     void onQuitButtonClicked();
     void createPauseDialog();
+    void triggerParticleEffect();
 
     std::vector<std::vector<int>> ludoBoard;
     std::atomic<int> dice;
