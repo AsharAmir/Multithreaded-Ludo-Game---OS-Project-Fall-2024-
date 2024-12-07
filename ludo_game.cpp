@@ -33,7 +33,7 @@
 using namespace std;
 
 
-LudoGame::LudoGame(QWidget *parent, int numTokens) : QMainWindow(parent), remainingTime(10) // Updated constructor
+LudoGame::LudoGame(QWidget *parent, int numTokens) : QMainWindow(parent), remainingTime(10)// Updated constructor
 {
     setFixedSize(BOARD_WIDTH, BOARD_HEIGHT);
     gameDice.shape.moveCenter(QPointF(GRID_SIZE * TILE_SIZE + 30 + DICE_SIZE / 2, 200 + DICE_SIZE / 2));
@@ -275,13 +275,18 @@ void LudoGame::drawScorecard(QPainter &painter) {
         QRectF tokensRect(xPos + 2 * TILE_SIZE + 5, yPos + row * 40 + 5, TILE_SIZE - 10, 40 - 10);
         // painter.drawText(tokensRect, Qt::AlignCenter, QString("Tokens"));
 
-        // Draw completed tokens as small colored circles
+        // Draw completed tokens as small colored circles side by side horizontally
         int tokenXPos = xPos + (2 * TILE_SIZE) + 5; // Right next to the "Tokens" column
-        int tokenYPos = yPos + row * 40 + 40 / 2 - 5;
+        int tokenYPos = yPos + row * 40 + 40 / 2 - 5; // Centering vertically
+
+        // Adjust horizontally (spacing between tokens)
+        int tokenSpacing = 15; // Adjust this value for spacing between tokens
+
         for (size_t j = 0; j < players[i].completedTokens.size(); ++j) {
             painter.setBrush(colors[i]);
             painter.setPen(QPen(Qt::black, 2));
-            painter.drawEllipse(tokenXPos, tokenYPos + j * 12, 12, 12); // Draw token circles (larger tokens)
+            // Draw each token side by side horizontally
+            painter.drawEllipse(tokenXPos + j * tokenSpacing, tokenYPos, 12, 12); // Draw token circles
         }
     }
 
@@ -297,6 +302,7 @@ void LudoGame::drawScorecard(QPainter &painter) {
     QRectF headerTokensRect(xPos + TILE_SIZE * 2, yPos - 30, TILE_SIZE, 40);
     painter.drawText(headerTokensRect, Qt::AlignCenter, "Tokens");
 }
+
 
 void LudoGame::mousePressEvent(QMouseEvent *event)
 {
@@ -636,7 +642,7 @@ void LudoGame::drawPieces(QPainter &painter)
             QRectF tokenRect;
             float x = 0, y = 0; // Initialize for debugging
 
-            if (!token.inPlay) {
+            if (!token.inPlay && !token.scored) {
                 // Calculate home position for tokens not in play
                 int tokenIndex = &token - &players[p].tokens[0];
                 int row = tokenIndex / 2;
@@ -677,15 +683,17 @@ void LudoGame::drawPieces(QPainter &painter)
 void LudoGame::drawDice(QPainter &painter)
 {
     painter.save();
+
+    // Set dice position (30px to the right and down)
     painter.translate(gameDice.shape.center());
 
     // Smooth dice rolling animation
     if (gameDice.isRolling)
     {
         qint64 elapsedTime = gameDice.rollClock.elapsed();
-        if (elapsedTime < 700) // Rolling time extended to 700ms
+        if (elapsedTime < 1000) // Rolling animation lasts 1 second
         {
-            gameDice.rotation += 5.0f; // Smooth rotation increment
+            gameDice.rotation += 10.0f; // Faster rotation for a more dynamic feel
             painter.rotate(gameDice.rotation);
         }
         else
@@ -694,57 +702,66 @@ void LudoGame::drawDice(QPainter &painter)
         }
     }
 
-    // Draw dice background (3D effect)
+    // Draw dice background (simulate 3D effect)
     QRectF diceRect(-DICE_SIZE / 2, -DICE_SIZE / 2, DICE_SIZE, DICE_SIZE);
     QLinearGradient gradient(diceRect.topLeft(), diceRect.bottomRight());
-    gradient.setColorAt(0.0, QColor(255, 255, 255)); // Highlight
-    gradient.setColorAt(1.0, QColor(200, 200, 200)); // Shadow
+    gradient.setColorAt(0.0, QColor(255, 255, 255)); // Top-left highlight
+    gradient.setColorAt(0.5, QColor(230, 230, 230)); // Mid-shadow
+    gradient.setColorAt(1.0, QColor(180, 180, 180)); // Bottom-right shadow
     painter.setBrush(gradient);
-    painter.setPen(QPen(Qt::black, 2));
-    painter.drawRoundedRect(diceRect, 5, 5); // Rounded edges for a modern look
+    painter.setPen(QPen(Qt::black, 3));
+    painter.drawRoundedRect(diceRect, 10, 10); // Rounded edges for realism
+
+    // Add slight 3D edge effect
+    QRectF smallerRect = diceRect.adjusted(2, 2, -2, -2);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(200, 200, 200, 150)); // Light shadow on edges
+    painter.drawRoundedRect(smallerRect, 8, 8);
 
     // Draw dots on the dice
-    if (!gameDice.isRolling)
+    painter.setBrush(Qt::black); // Standard black dots
+    QVector<QPointF> dotPositions;
+    switch (gameDice.value)
     {
-        painter.setBrush(Qt::black); // Standard black dots
-        QVector<QPointF> dotPositions;
-        switch (gameDice.value)
-        {
-        case 1:
-            dotPositions = {{0, 0}};
-            break;
-        case 2:
-            dotPositions = {{-10, -10}, {10, 10}};
-            break;
-        case 3:
-            dotPositions = {{-10, -10}, {0, 0}, {10, 10}};
-            break;
-        case 4:
-            dotPositions = {{-10, -10}, {10, -10}, {-10, 10}, {10, 10}};
-            break;
-        case 5:
-            dotPositions = {{-10, -10}, {10, -10}, {0, 0}, {-10, 10}, {10, 10}};
-            break;
-        case 6:
-            dotPositions = {{-10, -10}, {-10, 0}, {-10, 10}, {10, -10}, {10, 0}, {10, 10}};
-            break;
-        }
+    case 1:
+        dotPositions = {{0, 0}};
+        break;
+    case 2:
+        dotPositions = {{-10, -10}, {10, 10}};
+        break;
+    case 3:
+        dotPositions = {{-10, -10}, {0, 0}, {10, 10}};
+        break;
+    case 4:
+        dotPositions = {{-10, -10}, {10, -10}, {-10, 10}, {10, 10}};
+        break;
+    case 5:
+        dotPositions = {{-10, -10}, {10, -10}, {0, 0}, {-10, 10}, {10, 10}};
+        break;
+    case 6:
+        dotPositions = {{-10, -10}, {-10, 0}, {-10, 10}, {10, -10}, {10, 0}, {10, 10}};
+        break;
+    }
 
-        // Draw dots
-        for (const auto &pos : dotPositions)
-        {
-            painter.drawEllipse(pos, 4, 4); // Larger dots for better visibility
-        }
+    // Draw dots with slight depth effect
+    for (const auto &pos : dotPositions)
+    {
+        painter.setBrush(Qt::black);
+        painter.drawEllipse(pos, 5, 5); // Larger dots for better visibility
+
+        // Add highlight to the dots for realism
+        painter.setBrush(QColor(70, 70, 70));
+        painter.drawEllipse(pos.x() - 1, pos.y() - 1, 3, 3);
     }
 
     painter.restore();
 
-    // Add "Roll the Dice" text
     painter.setFont(QFont("Arial", 20, QFont::Bold));
     painter.setPen(Qt::black);
     painter.drawText(gameDice.shape.center().x(), gameDice.shape.center().y() + DICE_SIZE + 90,
                      "Roll the Dice"); // Text positioned near the dice
 }
+
 
 
 void LudoGame::rollDice()
@@ -786,47 +803,6 @@ void LudoGame::rollDice()
     update();
 }
 
-void LudoGame::triggerParticleEffect()
-{
-    // std::cout << "Triggering particle effect for rolling a 6!" << std::endl;
-    // Create a QGraphicsScene for particle effects
-    QGraphicsScene *scene = new QGraphicsScene(this);
-    QGraphicsView *particleView = new QGraphicsView(scene, this);
-
-    // Position the particle view over the dice area
-    QRectF diceRect = gameDice.shape.boundingRect();
-    particleView->setGeometry(diceRect.x() + 30, diceRect.y() + 30, 100, 100);
-    particleView->setStyleSheet("background: transparent;");
-    particleView->setFrameStyle(QFrame::NoFrame);
-    particleView->show();
-
-    // Generate particles
-    for (int i = 0; i < 20; ++i)
-    {
-        QGraphicsEllipseItem *particle = scene->addEllipse(50, 50, 5, 5, QPen(), QBrush(Qt::yellow));
-        int dx = QRandomGenerator::global()->bounded(-50, 50);
-        int dy = QRandomGenerator::global()->bounded(-50, 50);
-
-        // Create a QPropertyAnimation for the particle
-        QPropertyAnimation *animation = new QPropertyAnimation(particle, "pos");
-        animation->setDuration(500);
-        animation->setStartValue(QPointF(50, 50)); // Start at the center
-        animation->setEndValue(QPointF(50 + dx, 50 + dy)); // Move outward
-        animation->setEasingCurve(QEasingCurve::OutQuad);
-
-        connect(animation, &QPropertyAnimation::finished, particle, [scene, particle]() {
-            scene->removeItem(particle);
-            delete particle;
-        });
-
-        animation->start(QAbstractAnimation::DeleteWhenStopped);
-    }
-
-    // Remove the particle view after 700ms
-    QTimer::singleShot(700, particleView, [particleView]() {
-        particleView->deleteLater();
-    });
-}
 
 
 void LudoGame::advanceTurn()
@@ -892,9 +868,6 @@ void LudoGame::handleTokenSelection(const QPointF &mousePos)
             {
                 validMove = true;
                 moveToken(token, gameDice.value);
-                std::cout << "player hit a 6 and triggering particles now" << std::endl;
-                triggerParticleEffect();
-                std::cout << "triggered particles" << std::endl;
                 // moveTokenTest(token);
             }
             else if (token.inPlay)
@@ -986,7 +959,8 @@ void LudoGame::moveToken(Token &token, int spaces) {
             players[currentPlayer].score++;  // Increase the player's score
             std::cout << "[DEBUG] Player " << currentPlayer << "'s score: " << players[currentPlayer].score << std::endl;
 
-            token.inPlay = false;
+            // token.inPlay = false;
+            return;
         }
 
         // Check for hits
@@ -1092,7 +1066,7 @@ QPointF LudoGame::calculateBoardPosition(int playerId, int position) {
 QRectF LudoGame::calculateTokenRect(const Token &token) {
     QPointF position;
 
-    if (!token.inPlay) {
+    if (!token.inPlay && !token.scored) {
         // Calculate home position for tokens not in play
         int tokenIndex = &token - &players[currentPlayer].tokens[0];
         int row = tokenIndex / 2;

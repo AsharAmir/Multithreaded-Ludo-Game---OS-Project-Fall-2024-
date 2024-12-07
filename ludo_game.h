@@ -13,6 +13,11 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include "constants.h"
+#include <QGraphicsScene>
+#include <QPropertyAnimation>
+#include <QSequentialAnimationGroup>
+#include <QEasingCurve>
+#include <QGraphicsView>
 
 class LudoGame : public QMainWindow
 {
@@ -56,7 +61,9 @@ private:
     void onResumeButtonClicked();
     void onQuitButtonClicked();
     void createPauseDialog();
-    void triggerParticleEffect();
+
+
+
 
     std::vector<std::vector<int>> ludoBoard;
     std::atomic<int> dice;
