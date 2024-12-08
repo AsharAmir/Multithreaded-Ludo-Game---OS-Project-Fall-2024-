@@ -9,13 +9,13 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(SOURCES
-    main.cpp
-    ludo_game.cpp
-    player.cpp
-    token.cpp
-    dice.cpp
-    constants.cpp
-    main_menu.cpp
+    i222420_i222599_i228752_main.cpp
+    i222420_i222599_i228752_ludo_game.cpp
+    i222420_i222599_i228752_player.cpp
+    i222420_i222599_i228752_token.cpp
+    i222420_i222599_i228752_dice.cpp
+    i222420_i222599_i228752_constants.cpp
+    i222420_i222599_i228752_main_menu.cpp
 )
 
 add_executable(LudoGame ${SOURCES})

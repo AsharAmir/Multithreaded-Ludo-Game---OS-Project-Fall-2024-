@@ -1,4 +1,4 @@
-#include "ludo_game.h"
+#include "i222420_i222599_i228752_ludo_game.h"
 #include <QPainter>
 #include <QMouseEvent>
 #include <QRandomGenerator>
@@ -6,7 +6,7 @@
 #include <thread>
 #include <QPainterPath>
 #include <QThread>
-#include "constants.h"
+#include "i222420_i222599_i228752_constants.h"
 #include <QMessageBox>
 #include <random>
 #include <QPushButton>
@@ -767,7 +767,7 @@ void LudoGame::drawDice(QPainter &painter)
 
 void LudoGame::rollDice()
 {
-    gameDice.value = QRandomGenerator::global()->bounded(5, 7);
+    gameDice.value = QRandomGenerator::global()->bounded(1, 7);
     // testing
     // gameDice.value = 6;
     gameDice.isRolling = true;

@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QLabel>
-#include "ludo_game.h"
+#include "i222420_i222599_i228752_ludo_game.h"
 
 class MainMenu : public QWidget {
     Q_OBJECT

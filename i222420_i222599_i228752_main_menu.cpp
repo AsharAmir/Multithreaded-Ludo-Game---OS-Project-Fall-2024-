@@ -1,5 +1,5 @@
-#include "main_menu.h"
-#include "ludo_game.h"
+#include "i222420_i222599_i228752_main_menu.h"
+#include "i222420_i222599_i228752_ludo_game.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QApplication>

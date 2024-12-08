@@ -6,13 +6,13 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
-#include "player.h"
-#include "dice.h"
+#include "i222420_i222599_i228752_player.h"
+#include "i222420_i222599_i228752_dice.h"
 #include <QPushButton>
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include "constants.h"
+#include "i222420_i222599_i228752_constants.h"
 #include <QGraphicsScene>
 #include <QPropertyAnimation>
 #include <QSequentialAnimationGroup>

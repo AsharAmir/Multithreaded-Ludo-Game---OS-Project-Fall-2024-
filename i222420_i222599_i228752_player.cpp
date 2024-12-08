@@ -1,5 +1,5 @@
-#include "player.h"
-#include "constants.h"
+#include "i222420_i222599_i228752_player.h"
+#include "i222420_i222599_i228752_constants.h"
 
 Player::Player(int playerId) : id(playerId),
                                hitRate(100),
