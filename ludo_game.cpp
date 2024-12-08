@@ -388,9 +388,10 @@ void LudoGame::calculateHighlightedPositions() {
     update(); // Trigger a repaint to show the highlights
 }
 
-
+int globalNumTokens = 0;
 void LudoGame::initializePlayers(int numTokens) // Updated method signature
 {
+    globalNumTokens = numTokens; // Store the number of tokens in a global variable
     if (numTokens < MIN_TOKENS)
         numTokens = MIN_TOKENS;
     if (numTokens > MAX_TOKENS)
@@ -959,9 +960,36 @@ void LudoGame::moveToken(Token &token, int spaces) {
             players[currentPlayer].score++;  // Increase the player's score
             std::cout << "[DEBUG] Player " << currentPlayer << "'s score: " << players[currentPlayer].score << std::endl;
 
+            // std::cout << "[[[DEBUG]]] Player " << currentPlayer << "'s score: " << players[currentPlayer].score << "NUMMTOKEN " << numTokens << std::endl;
             // token.inPlay = false;
-            return;
-        }
+            if (players[currentPlayer].score == globalNumTokens) {
+                QString winnerColor;
+                switch (currentPlayer) {
+                    case 0: winnerColor = "Blue"; break;
+                    case 1: winnerColor = "Yellow"; break;
+                    case 2: winnerColor = "Red"; break;
+                    case 3: winnerColor = "Green"; break;
+                }
+
+                QString message = QString("🎉 Congratulations, %1 Player! 🎉\n\n"
+                                        "You have won the game!")
+                                        .arg(winnerColor);
+
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("Game Over");
+                msgBox.setText(message);
+                msgBox.setIcon(QMessageBox::Information);
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setStyleSheet(
+                    "QMessageBox { background-color: #f0f8ff; font-family: Arial; font-size: 16px; } "
+                    "QLabel { color: #333333; } "
+                    "QPushButton { background-color: #87CEEB; border: none; padding: 5px; }");
+
+                msgBox.exec(); // Show the message box
+
+                QApplication::quit(); // End the application
+            }
+
 
         // Check for hits
         checkAndProcessHits(token, newPosition, currentPlayer);
@@ -969,6 +997,7 @@ void LudoGame::moveToken(Token &token, int spaces) {
 
     highlightedCells.clear();
     update();
+}
 }
 
 
